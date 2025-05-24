@@ -1,6 +1,7 @@
 const { DataTypes, ENUM } = require('sequelize');
 const database = require('../database');
 const { patient } = require('./personne');
+const { consultation } = require('./consultation');
 
 // Types d'examens disponibles dans l'hôpital
 const typeExamen = database.define('typeExamen', {
@@ -15,7 +16,7 @@ const typeExamen = database.define('typeExamen', {
     },
     categorie: {
         type: ENUM,
-        values: ['Hématologie', 'Biochimie', 'Microbiologie', 'Imagerie', 'Parasitologie', 'Immunologie'],
+        values: ['Hématologie', 'Biochimie', 'Microbiologie', 'Imagerie', 'Parasitologie', 'Immunologie', 'Cardiologie', 'Urologie'],
         allowNull: false
     },
     prix: {
@@ -31,7 +32,15 @@ const typeExamen = database.define('typeExamen', {
         defaultValue: true
     },
     description: {
-        type: DataTypes.STRING
+        type: DataTypes.TEXT
+    },
+    prerequis: {
+        type: DataTypes.TEXT, // Par exemple: "Patient à jeun", "Arrêt de certains médicaments"
+        allowNull: true
+    },
+    materielNecessaire: {
+        type: DataTypes.TEXT, // Équipements/matériels nécessaires
+        allowNull: true
     }
 });
 
@@ -60,34 +69,79 @@ const examen = database.define('examen', {
         defaultValue: DataTypes.NOW
     },
     datePaiement: {
-        type: DataTypes.DATE
+        type: DataTypes.DATE,
+        allowNull: true
     },
     dateRealisation: {
-        type: DataTypes.DATE
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    dateResultat: {
+        type: DataTypes.DATE,
+        allowNull: true
     },
     resultats: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
+        allowNull: true
     },
     observations: {
-        type: DataTypes.TEXT
+        type: DataTypes.TEXT,
+        allowNull: true
     },
     fichierResultat: {
-        type: DataTypes.STRING // URL ou chemin du fichier PDF
+        type: DataTypes.STRING, // URL ou chemin du fichier PDF/image
+        allowNull: true
     },
     priorite: {
         type: ENUM,
         values: ['Normal', 'Urgent', 'TrèsUrgent'],
         defaultValue: 'Normal'
+    },
+    prescripteur: {
+        type: DataTypes.STRING, // Nom du médecin prescripteur
+        allowNull: true
+    },
+    laborantin: {
+        type: DataTypes.STRING, // Nom du laborantin qui a effectué l'examen
+        allowNull: true
+    },
+    commentaireMedecin: {
+        type: DataTypes.TEXT, // Commentaires du médecin lors de la prescription
+        allowNull: true
     }
 });
 
 // Associations
-examen.belongsTo(typeExamen);
-examen.belongsTo(patient, { foreignKey: 'matricule', targetKey: 'matricule' });
-examen.belongsTo(consultation);
+examen.belongsTo(typeExamen, {
+    foreignKey: 'typeExamenId',
+    as: 'typeExamen'
+});
 
-typeExamen.hasMany(examen);
-patient.hasMany(examen, { foreignKey: 'matricule' });
-consultation.hasMany(examen);
+examen.belongsTo(patient, { 
+    foreignKey: 'matricule', 
+    targetKey: 'matricule',
+    as: 'patient'
+});
+
+examen.belongsTo(consultation.consultation, {
+    foreignKey: 'consultationId',
+    as: 'consultation'
+});
+
+typeExamen.hasMany(examen, {
+    foreignKey: 'typeExamenId',
+    as: 'examens'
+});
+
+patient.hasMany(examen, { 
+    foreignKey: 'matricule',
+    sourceKey: 'matricule',
+    as: 'examens'
+});
+
+consultation.consultation.hasMany(examen, {
+    foreignKey: 'consultationId',
+    as: 'examens'
+});
 
 module.exports = { typeExamen, examen };
