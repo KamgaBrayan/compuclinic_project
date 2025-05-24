@@ -1,22 +1,29 @@
-// BackEnd/controllers/controllerLaborantin.js
 const { TypeExamen, PrescriptionExamen, ResultatExamen, ParametreExamen } = require('../models/laboratoire');
-const { patient, personne } = require('../models/personne');
+const { patient, personne, employe } = require('../models/personne');
 const { consultation } = require('../models/consultation');
 const { Op } = require('sequelize');
+const database = require('../database');
 
 // Gestion des types d'examens
 const createTypeExamen = async (req, res) => {
     try {
-        const { nom, code, description, prix, dureeEstimee, necessitePrevision, categorie } = req.body;
+        const { nom, code, description, prix, dureeEstimee, necessitePrevision, categorie, laborantinId } = req.body;
+        
+        // Vérifier si le code existe déjà
+        const existingType = await TypeExamen.findOne({ where: { code } });
+        if (existingType) {
+            return res.status(400).json({ message: 'Ce code d\'examen existe déjà' });
+        }
         
         const nouveauType = await TypeExamen.create({
             nom,
             code,
             description,
-            prix,
-            dureeEstimee,
+            prix: prix || 0,
+            dureeEstimee: dureeEstimee || 30,
             necessitePrevision,
-            categorie
+            categorie: categorie || 'autre',
+            laborantinId
         });
 
         res.status(201).json({ 
@@ -34,8 +41,21 @@ const createTypeExamen = async (req, res) => {
 
 const getAllTypesExamens = async (req, res) => {
     try {
+        const { disponible, categorie, laborantinId } = req.query;
+        
+        let whereClause = {};
+        if (disponible !== undefined) whereClause.disponible = disponible === 'true';
+        if (categorie) whereClause.categorie = categorie;
+        if (laborantinId) whereClause.laborantinId = laborantinId;
+        
         const types = await TypeExamen.findAll({
-            include: [ParametreExamen],
+            where: whereClause,
+            include: [
+                {
+                    model: ParametreExamen,
+                    order: [['ordreAffichage', 'ASC']]
+                }
+            ],
             order: [['categorie', 'ASC'], ['nom', 'ASC']]
         });
 
@@ -73,11 +93,47 @@ const updateTypeExamen = async (req, res) => {
     }
 };
 
+const deleteTypeExamen = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const typeExamen = await TypeExamen.findByPk(id);
+        if (!typeExamen) {
+            return res.status(404).json({ message: 'Type d\'examen non trouvé' });
+        }
+        
+        // Vérifier s'il y a des prescriptions liées
+        const prescriptionsExistantes = await PrescriptionExamen.count({
+            where: { typeExamenId: id }
+        });
+        
+        if (prescriptionsExistantes > 0) {
+            return res.status(400).json({ 
+                message: 'Impossible de supprimer ce type d\'examen car il y a des prescriptions associées' 
+            });
+        }
+        
+        await typeExamen.destroy();
+        res.status(200).json({ message: 'Type d\'examen supprimé avec succès' });
+    } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        res.status(500).json({ 
+            message: 'Erreur lors de la suppression', 
+            error: error.message 
+        });
+    }
+};
+
 // Gestion des paramètres d'examens
 const addParametreToExamen = async (req, res) => {
     try {
         const { typeExamenId } = req.params;
-        const { nom, unite, valeurMinNormale, valeurMaxNormale, typeValeur, obligatoire } = req.body;
+        const { nom, unite, valeurMinNormale, valeurMaxNormale, typeValeur, obligatoire, ordreAffichage } = req.body;
+
+        const typeExamen = await TypeExamen.findByPk(typeExamenId);
+        if (!typeExamen) {
+            return res.status(404).json({ message: 'Type d\'examen non trouvé' });
+        }
 
         const parametre = await ParametreExamen.create({
             typeExamenId,
@@ -85,8 +141,9 @@ const addParametreToExamen = async (req, res) => {
             unite,
             valeurMinNormale,
             valeurMaxNormale,
-            typeValeur,
-            obligatoire
+            typeValeur: typeValeur || 'numerique',
+            obligatoire: obligatoire !== false,
+            ordreAffichage: ordreAffichage || 0
         });
 
         res.status(201).json({ 
@@ -102,23 +159,89 @@ const addParametreToExamen = async (req, res) => {
     }
 };
 
+const getParametresExamen = async (req, res) => {
+    try {
+        const { typeExamenId } = req.params;
+        
+        const parametres = await ParametreExamen.findAll({
+            where: { typeExamenId },
+            order: [['ordreAffichage', 'ASC'], ['nom', 'ASC']]
+        });
+        
+        res.status(200).json({ parametres });
+    } catch (error) {
+        console.error('Erreur lors de la récupération des paramètres:', error);
+        res.status(500).json({ 
+            message: 'Erreur lors de la récupération des paramètres', 
+            error: error.message 
+        });
+    }
+};
+
+const updateParametreExamen = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+        
+        const parametre = await ParametreExamen.findByPk(id);
+        if (!parametre) {
+            return res.status(404).json({ message: 'Paramètre non trouvé' });
+        }
+        
+        await parametre.update(updates);
+        res.status(200).json({ 
+            message: 'Paramètre mis à jour avec succès', 
+            parametre 
+        });
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du paramètre:', error);
+        res.status(500).json({ 
+            message: 'Erreur lors de la mise à jour du paramètre', 
+            error: error.message 
+        });
+    }
+};
+
+const deleteParametreExamen = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const parametre = await ParametreExamen.findByPk(id);
+        if (!parametre) {
+            return res.status(404).json({ message: 'Paramètre non trouvé' });
+        }
+        
+        await parametre.destroy();
+        res.status(200).json({ message: 'Paramètre supprimé avec succès' });
+    } catch (error) {
+        console.error('Erreur lors de la suppression du paramètre:', error);
+        res.status(500).json({ 
+            message: 'Erreur lors de la suppression du paramètre', 
+            error: error.message 
+        });
+    }
+};
+
 // Gestion des prescriptions d'examens
 const getPrescriptionsEnAttente = async (req, res) => {
     try {
-        const { statut = 'paye' } = req.query;
+        const { statut = 'paye', urgence, categorie } = req.query;
+        
+        let whereClause = {};
+        if (statut) whereClause.statut = statut;
+        if (urgence) whereClause.urgence = urgence;
+        
+        let includeClause = [
+            {
+                model: TypeExamen,
+                include: [ParametreExamen],
+                where: categorie ? { categorie } : {}
+            }
+        ];
         
         const prescriptions = await PrescriptionExamen.findAll({
-            where: { statut },
-            include: [
-                {
-                    model: TypeExamen,
-                    include: [ParametreExamen]
-                },
-                {
-                    model: patient,
-                    include: [personne]
-                }
-            ],
+            where: whereClause,
+            include: includeClause,
             order: [['urgence', 'DESC'], ['datePrescription', 'ASC']]
         });
 
@@ -293,6 +416,38 @@ const getResultatsPatient = async (req, res) => {
     }
 };
 
+const getResultatById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const resultat = await ResultatExamen.findByPk(id, {
+            include: [
+                {
+                    model: PrescriptionExamen,
+                    include: [
+                        {
+                            model: TypeExamen,
+                            include: [ParametreExamen]
+                        }
+                    ]
+                }
+            ]
+        });
+        
+        if (!resultat) {
+            return res.status(404).json({ message: 'Résultat non trouvé' });
+        }
+        
+        res.status(200).json({ resultat });
+    } catch (error) {
+        console.error('Erreur lors de la récupération du résultat:', error);
+        res.status(500).json({ 
+            message: 'Erreur lors de la récupération du résultat', 
+            error: error.message 
+        });
+    }
+};
+
 // Fonction utilitaire pour récupérer les infos patient
 const getPatientInfo = async (matricule) => {
     try {
@@ -367,11 +522,16 @@ module.exports = {
     createTypeExamen,
     getAllTypesExamens,
     updateTypeExamen,
+    deleteTypeExamen,
     addParametreToExamen,
+    getParametresExamen,
+    updateParametreExamen,
+    deleteParametreExamen,
     getPrescriptionsEnAttente,
     commencerExamen,
     saisirResultats,
     validerResultats,
     getResultatsPatient,
+    getResultatById,
     getStatistiquesLab
 };

@@ -1,7 +1,6 @@
-// BackEnd/models/laboratoire.js
 const { DataTypes, ENUM } = require('sequelize');
 const database = require('../database');
-const { personne, patient } = require('./personne');
+const { personne, patient, employe } = require('./personne');
 const { consultation } = require('./consultation');
 
 // Types d'examens disponibles
@@ -25,7 +24,8 @@ const TypeExamen = database.define('TypeExamen', {
     },
     prix: {
         type: DataTypes.FLOAT,
-        allowNull: false
+        allowNull: false,
+        defaultValue: 0
     },
     dureeEstimee: { // en minutes
         type: DataTypes.INTEGER,
@@ -40,7 +40,12 @@ const TypeExamen = database.define('TypeExamen', {
     },
     categorie: {
         type: ENUM('hematologie', 'biochimie', 'microbiologie', 'parasitologie', 'immunologie', 'radiologie', 'echographie', 'autre'),
-        allowNull: false
+        allowNull: false,
+        defaultValue: 'autre'
+    },
+    laborantinId: {
+        type: DataTypes.UUID,
+        allowNull: true // Permet à un laborantin de créer/gérer ses examens
     }
 });
 
@@ -61,7 +66,7 @@ const PrescriptionExamen = database.define('PrescriptionExamen', {
     },
     consultationId: {
         type: DataTypes.UUID,
-        allowNull: false
+        allowNull: true // Car les consultations existantes n'ont pas forcément d'ID UUID
     },
     typeExamenId: {
         type: DataTypes.UUID,
@@ -87,6 +92,10 @@ const PrescriptionExamen = database.define('PrescriptionExamen', {
     },
     observations: {
         type: DataTypes.TEXT
+    },
+    prixTotal: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0
     }
 });
 
@@ -164,6 +173,10 @@ const ParametreExamen = database.define('ParametreExamen', {
     obligatoire: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
+    },
+    ordreAffichage: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     }
 });
 
@@ -179,7 +192,10 @@ ResultatExamen.belongsTo(PrescriptionExamen, { foreignKey: 'prescriptionExamenId
 
 // Relations avec les modèles existants
 PrescriptionExamen.belongsTo(patient, { foreignKey: 'matriculePatient', targetKey: 'matricule' });
-PrescriptionExamen.belongsTo(consultation, { foreignKey: 'consultationId' });
+PrescriptionExamen.belongsTo(employe, { foreignKey: 'medecinId' });
+
+ResultatExamen.belongsTo(employe, { foreignKey: 'laborantinId' });
+TypeExamen.belongsTo(employe, { foreignKey: 'laborantinId' });
 
 module.exports = {
     TypeExamen,
