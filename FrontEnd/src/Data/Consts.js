@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const wServerRoot = "http://localhost:8000/api";
+export const wServerRoot = "http://127.0.0.1:8000/api";
 export const BASE_URL = `${wServerRoot}/pharmacy`;
 
 export const wServer = {

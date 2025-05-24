@@ -3,14 +3,9 @@ import { Modal, ListGroup, Badge, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
 import './CartModal.css';
-import HospitalInvoice from './HospitalInvoice';
 
 const CartModal = ({ show, onHide, cartItems, updateQuantity, removeFromCart, proceedToCheckout }) => {
   const total = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-
-  const handleGenerateInvoice = () => {
-      HospitalInvoice({ cartItems, onClose: onHide });
-  };
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered className="cart-modal">
@@ -75,7 +70,7 @@ const CartModal = ({ show, onHide, cartItems, updateQuantity, removeFromCart, pr
               <span>Total:</span>
               <span className="amount">{total.toFixed(2)} FCFA</span>
             </div>
-            <Button variant="primary" onClick={handleGenerateInvoice}>
+            <Button variant="primary" onClick={proceedToCheckout}>
               Generate Invoice
             </Button>
           </div>
