@@ -73,6 +73,40 @@ const updateConsultationResultById = async (req, res) => {
     }
 }
 
+const getConsultationById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const consultationRecord = await consultation.consultation.findByPk(id, {
+            // Inclure les associations nécessaires si besoin (patient, médecin, etc.)
+            // include: [
+            //     { model: personne.patient, include: [personne.personne] },
+            //     { model: personne.employe, include: [personne.personne] } 
+            // ]
+        });
+
+        if (consultationRecord) {
+            // Vous pourriez vouloir enrichir avec les infos patient comme dans getConsultations
+            const patientInfo = await getPatientById(consultationRecord.matricule); // Votre fonction existante
+            const enrichedConsultation = {
+                ...consultationRecord.toJSON(),
+                patientInfo: patientInfo ? {
+                    lastName: patientInfo.lastName,
+                    firstName: patientInfo.firstName,
+                    sex: patientInfo.sex,
+                    // ... autres champs de personne
+                } : null
+            };
+            res.status(200).json(enrichedConsultation);
+        } else {
+            res.status(404).json({ message: "Consultation non trouvée" });
+        }
+    } catch (error) {
+        console.error('Erreur lors de la récupération de la consultation par ID:', error);
+        res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    }
+};
+
+
 const changeStateConsultation = async (req, res) => {
     const { matricule, statut } = req.body;
     try {
@@ -352,6 +386,7 @@ module.exports = {
     updateConsultationResultById, 
     getConsultations, 
     changeStateConsultation,
+    getConsultationById,
     // Nouvelles fonctions pour examens
     getTypesExamensDisponibles,
     prescrireExamen,

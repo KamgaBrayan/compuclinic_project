@@ -80,15 +80,8 @@ const DrugDosage = database.define('DrugDosage', {
   dose: {
     type: DataTypes.INTEGER,
     allowNull: false,
-  },
-  drugId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: Drug,
-      key: 'id'
-    }
   }
+  // Suppression du drugId explicite car il sera créé automatiquement par la relation
 });
 
 /*
@@ -170,9 +163,17 @@ const InvoiceItem = database.define('invoiceItem', {
 });
 */
 
-// Establish relationships
-Drug.hasMany(DrugDosage);
-DrugDosage.belongsTo(Drug);
+// Establish relationships - CORRIGÉ
+Drug.hasMany(DrugDosage, { 
+  foreignKey: 'drugId',
+  onDelete: 'CASCADE',
+  onUpdate: 'CASCADE'
+});
+
+DrugDosage.belongsTo(Drug, { 
+  foreignKey: 'drugId',
+  allowNull: false
+});
 
 /*
 Invoice.belongsTo(personne, {
@@ -188,7 +189,6 @@ personne.hasMany(Invoice, {
   as: 'invoices',
   constraints: true
 });
-
 
 InvoiceItem.belongsTo(Drug, { foreignKey: 'drugId' });
 InvoiceItem.belongsTo(Invoice, { foreignKey: 'invoiceId' });

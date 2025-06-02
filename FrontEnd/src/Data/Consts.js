@@ -11,14 +11,20 @@ export const wServer = {
         LOGGED_IN : `${wServerRoot}/auth/log/`,
         PATIENT : {
             ALL : `${wServerRoot}/secretaire/getPatients/`,
-            PROFILE : (id="") => `${wServerRoot}/secretaire/patient/${id}/`,
+            // Ancienne route pour le profil, potentiellement utilisée ailleurs (POST avec matricule dans le body)
+            PROFILE : (id="") => `${wServerRoot}/secretaire/patient/${id}/`, // Laissé tel quel pour compatibilité, mais l'appel doit être un POST avec body.
+            // Nouvelle route pour le profil patient, utilisant GET avec matricule dans l'URL (plus RESTful)
+            PROFILE_BY_MATRICULE_V2 : (matricule) => `${wServerRoot}/secretaire/getPatientById/${matricule}`, // Assumant que le backend sera ajusté pour GET /:matricule
             INTERNED : `${wServerRoot}/secretaire/patients/?statut=Interne`,
             EXTERNED : `${wServerRoot}/secretaire/patients/?statut=Externe`,
         },
-        PLATEAU_TECHNIQUE : ``,
+        PLATEAU_TECHNIQUE : ``, // Reste vide si non défini
         SCHEDULES : `${wServerRoot}/utils/schedules/`,
+        // Ancienne route, potentiellement utilisée (GET avec ID dans l'URL, mais backend pour cela non identifié clairement)
         CONSULTATION : (filter="") => `${wServerRoot}/consultations/consultations/?${filter}`,
-        CONSULTATION_SINGLE : (id="") => `${wServerRoot}/consultations/consultations/${id}/`,
+        CONSULTATION_SINGLE : (id="") => `${wServerRoot}/consultations/consultations/${id}/`, // Backend pour cette route spécifique à vérifier
+        // Nouvelle route pour récupérer une consultation unique par ID (si implémentée au backend)
+        CONSULTATION_BY_ID_V2 : (id) => `${wServerRoot}/medecin/consultation/${id}`, // Hypothétique, backend à confirmer/créer
         DOCTORS : `${wServerRoot}/grh/medecins/`,
         SECRETARIES : `${wServerRoot}/grh/secretaires/`,
         CAISHIERS : `${wServerRoot}/grh/caissiers/`,
@@ -26,88 +32,157 @@ export const wServer = {
         LABORATORIES : `${wServerRoot}/grh/laborantins/`,
         EMPLOYEE : `${wServerRoot}/grh/personnels/`,
         DOCTOR_PROFILE : (id) => `${wServerRoot}/grh/medecins/${id}/`,
-        ALLCONSULTATIONS :`${wServerRoot}/medecin/getConsultations/`,
+        ALLCONSULTATIONS :`${wServerRoot}/medecin/getConsultations/`, // Note: quasi identique à MEDECIN.CONSULTATIONS ci-dessous
+
         PHARMACY: {
             ALL: `${BASE_URL}/drugs`,
-            SEARCH: `${BASE_URL}/drugs/search`,
+            SEARCH: `${BASE_URL}/drugs/search`, // ex: ?field=name&query=paracetamol
             BY_ID: (id) => `${BASE_URL}/drugs/${id}`,
             DOSAGE: (drugId) => `${BASE_URL}/drugs/${drugId}/dosage`,
-            INVOICES: `${BASE_URL}/invoices`,
-            INVOICE: (id) => `${BASE_URL}/invoices/${id}`,
-            SEARCH_INVOICES: `${BASE_URL}/invoices/search`,
-            GET_ALL_INVOICES: `${BASE_URL}/invoices`,
-            GET_INVOICE_BY_ID: (id) => `${BASE_URL}/invoices/${id}`,
-            SEARCH_INVOICES: `${BASE_URL}/invoices/search`
+            LOW_STOCK: `${BASE_URL}/drugs/low-stock`,
+            ORDONNANCES: `${BASE_URL}/ordonnances`, // Pour obtenir toutes les ordonnances (pharmacien)
+            ORDONNANCE_BY_ID: (id) => `${BASE_URL}/ordonnances/${id}`,
+            STATISTICS: `${BASE_URL}/statistics`,
+            // INVOICES - Si la gestion des factures pharmacie est séparée
+            // INVOICES: `${BASE_URL}/invoices`,
+            // INVOICE: (id) => `${BASE_URL}/invoices/${id}`,
+            // SEARCH_INVOICES: `${BASE_URL}/invoices/search`,
+        },
+
+        MEDECIN: {
+            CONSULTATIONS: `${wServerRoot}/medecin/getConsultations`,
+            TYPES_EXAMENS: `${wServerRoot}/medecin/types-examens`,
+            PRESCRIPTIONS_EXAMENS_PATIENT: (matricule) => `${wServerRoot}/medecin/prescriptions-examens/${matricule}`,
+            MEDICAMENTS_DISPONIBLES: `${wServerRoot}/medecin/medicaments`,
+            ORDONNANCES_PATIENT: (matricule) => `${wServerRoot}/medecin/ordonnances/${matricule}`,
+            GEMINI: `${wServerRoot}/medecin/getGemini`, // GET ou POST ? Si POST, à déplacer
+        },
+
+        LABORANTIN: {
+            TYPES_EXAMENS: `${wServerRoot}/laborantin/types-examens`, // Liste tous les types d'examens
+            TYPE_EXAMEN_BY_ID: (id) => `${wServerRoot}/laborantin/types-examens/${id}`, // Pour obtenir un type d'examen spécifique
+            TYPES_EXAMENS_PARAMETRES: (typeExamenId) => `${wServerRoot}/laborantin/types-examens/${typeExamenId}/parametres`,
+            PRESCRIPTIONS_EN_ATTENTE: `${wServerRoot}/laborantin/prescriptions`, // ex: ?statut=paye
+            RESULTATS_PATIENT: (matricule) => `${wServerRoot}/laborantin/resultats/patient/${matricule}`,
+            RESULTAT_EXAMEN_BY_ID: (id) => `${wServerRoot}/laborantin/resultats/${id}`,
+            STATISTIQUES: `${wServerRoot}/laborantin/statistiques`,
         }
     },
-    CREATE : {
-        USER : `${wServerRoot}/auth/login/`,
+    CREATE : { // Devrait être principalement pour les requêtes POST pour créer des ressources
+        USER : `${wServerRoot}/auth/login/`, // Semble incorrect pour "CREATE", plus pour login. REGISTER est séparé.
         SANDBOX : `${wServerRoot}/grh/sandbox/`,
         PERSONNEL : `${wServerRoot}/grh/personnels/`,
         DOCTOR : `${wServerRoot}/grh/medecins/`,
-        // CONSULTATION : `${wServerRoot}/consultations/consultations/`,
-        CONSULTATION : `${wServerRoot}/consultations/consultation/new/`,
+        CONSULTATION : `${wServerRoot}/consultations/consultation/new/`, // Création de consultation par la secrétaire ?
         NURSE : `${wServerRoot}/grh/infirmiers/`,
-        LABORANTIN : `${wServerRoot}/grh/laborantins/`,
         SECRETARY : `${wServerRoot}/grh/secretaires/`,
-        //
-        PATIENT : `${wServerRoot}/secretaire/addUnExistingPatient/`,
-        PATIENT_LAB: `${wServerRoot}/patients/lab`,
-        PATIENT_PLATEAU: `${wServerRoot}/patients/plateau`,
-        PATIENT_MEDECIN: `${wServerRoot}/patients/medecin`,
-        PATIENT_INFIRMIER: `${wServerRoot}/patients/infirmier`,
+        PATIENT : `${wServerRoot}/secretaire/addUnExistingPatient/`, // POST
+        // PATIENT_LAB: `${wServerRoot}/patients/lab`, // Ces routes PATIENT_* sont-elles utilisées / définies au backend?
+        // PATIENT_PLATEAU: `${wServerRoot}/patients/plateau`,
+        // PATIENT_MEDECIN: `${wServerRoot}/patients/medecin`,
+        // PATIENT_INFIRMIER: `${wServerRoot}/patients/infirmier`,
+
         PHARMACY: {
-            DRUG: `${BASE_URL}/drugs`,
-            DOSAGE: (drugId) => `${BASE_URL}/drugs/${drugId}/dosage`,
-            INVOICE: `${BASE_URL}/invoices`,
-            CREATE_INVOICE: `${BASE_URL}/invoices`
-        }
-    },
-    POST: {
-        PHARMACY: {
-            ADD: `${BASE_URL}/drugs`,
-            DOSAGE: (drugId) => `${BASE_URL}/drugs/${drugId}/dosage`,
-            INVOICE: `${BASE_URL}/invoices`,
-            CREATE_INVOICE: `${BASE_URL}/invoices`
-        }
-    },
-    PUT: {
-        PHARMACY: {
-            DRUG: (id) => `${BASE_URL}/drugs/${id}`,
-            INVOICE_STATUS: (id) => `${BASE_URL}/invoices/${id}/status`,
-            UPDATE_INVOICE_STATUS: (id) => `${BASE_URL}/invoices/${id}/status`
-        }
-    },
-    UPDATE : {
-        USER : `${wServerRoot}/auth/login/`,
-        PATIENT : {
-            INTERN : (id="") => `${wServerRoot}/secretaire/patients/${id}/`,
-            ADD_EXIST : (id="") => `${wServerRoot}/secretaire/addExistingPatient/${id}/`,
-            UPDATE_BY_ID :`${wServerRoot}/secretaire/updatePatientById`,
-            UPDATE_PARAMETERS :`${wServerRoot}/infirmiere/addPatientParameters`,
-            // INTERN : (id="") => `${wServerRoot}/secretaire/patient/${id}/interner/`,
-            EXTERN : (id="") => `${wServerRoot}/secretaire/patients/${id}/`,
-            // EXTERN : (id="") => `${wServerRoot}/secretaire/patient/${id}/externer/`,
+            DRUG: `${BASE_URL}/drugs`, // POST pour créer un médicament
+            DOSAGE: (drugId) => `${BASE_URL}/drugs/${drugId}/dosage`, // POST pour ajouter un dosage
+            // INVOICE: `${BASE_URL}/invoices`, // Si gestion factures pharmacie
+            // CREATE_INVOICE: `${BASE_URL}/invoices` // Redondant avec INVOICE ci-dessus
         },
-        UPDATECONSULTATION : `${wServerRoot}/medecin/updateResultConsultation/`,
-        UPDATESTATECONSULTATION: `${wServerRoot}/medecin/changestate`,
-        PHARMACY: {
-            DRUG: (id) => `${BASE_URL}/drugs/${id}`
+
+        MEDECIN: {
+            PRESCRIRE_EXAMEN: `${wServerRoot}/medecin/prescrire-examen`, // POST
+            CREER_ORDONNANCE: `${wServerRoot}/medecin/creer-ordonnance`, // POST
         },
+
+        LABORANTIN: {
+            TYPE_EXAMEN: `${wServerRoot}/laborantin/types-examens`, // POST pour créer un type d'examen
+            PARAMETRE_EXAMEN: (typeExamenId) => `${wServerRoot}/laborantin/types-examens/${typeExamenId}/parametres`, // POST
+            SAISIR_RESULTATS: (prescriptionId) => `${wServerRoot}/laborantin/prescriptions/${prescriptionId}/resultats`, // POST pour saisir (créer) des résultats
+        }
     },
+    // POST: { // Cette section peut être fusionnée avec CREATE ou gardée si la distinction est claire
+    //     PHARMACY: {
+    //         ADD: `${BASE_URL}/drugs`, // Redondant avec CREATE.PHARMACY.DRUG
+    //         DOSAGE: (drugId) => `${BASE_URL}/drugs/${drugId}/dosage`, // Redondant
+    //         INVOICE: `${BASE_URL}/invoices`, // Redondant
+    //         CREATE_INVOICE: `${BASE_URL}/invoices`, // Redondant
+    //         DISPENSER_MEDICAMENT: (prescriptionId) => `${BASE_URL}/prescriptions/${prescriptionId}/dispenser`, // POST, spécifique et important
+    //     }
+    // },
+    // Nouvelle section pour les actions spécifiques POST qui ne sont pas de la pure création
+    ACTION_POST: {
+        PHARMACY: {
+            DISPENSER_MEDICAMENT: (prescriptionId) => `${BASE_URL}/prescriptions/${prescriptionId}/dispenser`,
+        },
+        SECRETAIRE: {
+             // Si getPatientById reste en POST pour compatibilité
+            GET_PATIENT_BY_ID_POST_V1: `${wServerRoot}/secretaire/getPatientById/`
+        },
+        MEDECIN: {
+            GEMINI: `${wServerRoot}/medecin/gemini`,
+    },
+
+    PUT: { // Pour les mises à jour complètes de ressources existantes
+        PHARMACY: {
+            DRUG: (id) => `${BASE_URL}/drugs/${id}`, // Mettre à jour un médicament
+            STOCK: (id) => `${BASE_URL}/drugs/${id}/stock`, // Mettre à jour le stock (ajouter/soustraire)
+            // INVOICE_STATUS: (id) => `${BASE_URL}/invoices/${id}/status`, // Si gestion factures
+            // UPDATE_INVOICE_STATUS: (id) => `${BASE_URL}/invoices/${id}/status` // Redondant
+        },
+
+        MEDECIN: {
+            UPDATE_CONSULTATION_RESULT: `${wServerRoot}/medecin/updateResultConsultation`, // Mettre à jour diag/presc d'une consult
+            CHANGE_CONSULTATION_STATE: `${wServerRoot}/medecin/changestate`, // Changer statut consult (EnAttente, EnCours, Terminer)
+        },
+
+        INFIRMIERE: {
+            ADD_PATIENT_PARAMETERS: `${wServerRoot}/infirmiere/addPatientParameters`, // Met à jour une consult existante avec les params
+        },
+
+        LABORANTIN: {
+            TYPE_EXAMEN: (id) => `${wServerRoot}/laborantin/types-examens/${id}`, // Mettre à jour un type d'examen
+            PARAMETRE_EXAMEN: (id) => `${wServerRoot}/laborantin/parametres/${id}`, // Mettre à jour un paramètre
+            COMMENCER_EXAMEN: (prescriptionId) => `${wServerRoot}/laborantin/prescriptions/${prescriptionId}/commencer`, // Met à jour statut prescription
+            VALIDER_RESULTATS: (prescriptionId) => `${wServerRoot}/laborantin/prescriptions/${prescriptionId}/valider`, // Met à jour résultat + statut prescription
+            UPDATE_RESULTATS: (resultatId) => `${wServerRoot}/laborantin/resultats/${resultatId}`, // Pour mettre à jour un résultat existant (si nécessaire)
+        },
+        PATIENT_UPDATE_BY_ID_V1 :`${wServerRoot}/secretaire/updatePatientById`, // Route existante pour maj patient
+    },
+    // UPDATE : { // Cette section peut être fusionnée avec PUT ou PATCH si on suit les conventions HTTP
+    //     USER : `${wServerRoot}/auth/login/`, // Incorrect pour update
+    //     PATIENT : {
+    //         INTERN : (id="") => `${wServerRoot}/secretaire/patients/${id}/`,
+    //         ADD_EXIST : (id="") => `${wServerRoot}/secretaire/addExistingPatient/${id}/`,
+    //         UPDATE_BY_ID :`${wServerRoot}/secretaire/updatePatientById`, // Déjà dans PUT via PATIENT_UPDATE_BY_ID_V1
+    //         UPDATE_PARAMETERS :`${wServerRoot}/infirmiere/addPatientParameters`, // Déjà dans PUT.INFIRMIERE
+    //         EXTERN : (id="") => `${wServerRoot}/secretaire/patients/${id}/`,
+    //     },
+    //     UPDATECONSULTATION : `${wServerRoot}/medecin/updateResultConsultation/`, // Déjà dans PUT.MEDECIN
+    //     UPDATESTATECONSULTATION: `${wServerRoot}/medecin/changestate`, // Déjà dans PUT.MEDECIN
+    //     PHARMACY: {
+    //         DRUG: (id) => `${BASE_URL}/drugs/${id}` // Déjà dans PUT.PHARMACY
+    //     },
+    // },
     DELETE : {
         USER :  {
-            DELETE_BY_ID : (id="") => `${wServerRoot}/secretaire/deleteUserById/${id}/`
+            // DELETE_BY_ID : (id="") => `${wServerRoot}/secretaire/deleteUserById/${id}/` // Route pour user non trouvée au backend
         },
         PATIENT : {
-            DELETE_BY_ID : `${wServerRoot}/secretaire/deletePatientById`  // Removed trailing slash
+            // Ancienne route (si utilisée, ne prend pas d'ID dans l'URL)
+            DELETE_BY_ID_V1 : `${wServerRoot}/secretaire/deletePatientById`,
+            // Nouvelle route, avec matricule dans l'URL
+            DELETE_BY_MATRICULE_V2 : (matricule) => `${wServerRoot}/secretaire/deletePatientById/${matricule}`
         },
         PHARMACY: {
             DRUG: (id) => `${BASE_URL}/drugs/${id}`
+        },
+        LABORANTIN: {
+            TYPE_EXAMEN: (id) => `${wServerRoot}/laborantin/types-examens/${id}`,
+            PARAMETRE_EXAMEN: (id) => `${wServerRoot}/laborantin/parametres/${id}`,
         }
     }
-
-};
+}
+}
 
 export const wapp = {
     CURRENT_PAGE : `${window.location.href}`,
@@ -119,56 +194,84 @@ export const wapp = {
         REGISTRATION : "/registration",
         RESET_PASSWORD : "/resetpassword",
     },
-    //
     DEPARTMENT :{
         ALL: "/departments",
         SECRETARY : "/secretaire",
-        CAISSE : "/caissier", //empty
-        INFIRMERIE : "/infirmier", //empty
+        CAISSE : "/caissier",
+        INFIRMERIE : "/infirmier",
         MEDECINE : "/medicine",
-        PLATEAU_TECHNIQUE : "/plateautechnique",
-        LABORANTIN : "/laboratin",
+        PLATEAU_TECHNIQUE : "/plateautechnique", // Doit correspondre à une section de l'app
+        LABORANTIN : "/laborantin", // Renommé pour correspondre à GET.LABORANTIN
         GRH : "/ressourcehumain",
+        PHARMACIE: "/pharmacie", // Ajout pour la section pharmacie
     },
+    // COMPTABILITE semble être une copie de DEPARTMENT, à vérifier si c'est intentionnel
     COMPTABILITE :{
         ALL: "/comptabilite",
         SECRETARY : "/secretaire",
-        CAISSE : "/caissier", //empty
-        INFIRMERIE : "/infirmier", //empty
+        CAISSE : "/caissier",
+        INFIRMERIE : "/infirmier",
         MEDECINE : "/medicine",
         PLATEAU_TECHNIQUE : "/plateautechnique",
-        LABORANTIN : "/laboratin",
+        LABORANTIN : "/laborantin",
         GRH : "/ressourcehumain",
     },
-    DOCTOR : {
-        ALL : "/allDoctor",
-        ADD : "/addDoctor",
-        PROFILE : (id='#') => `/doctor/${id}`,
-        SCHEDULE : "#",
+    DOCTOR : { // Routes pour la gestion des docteurs (GRH)
+        ALL : "/grh/medecins/liste", // Exemple de route plus spécifique
+        ADD : "/grh/medecins/ajouter",
+        PROFILE : (id='#') => `/grh/medecins/${id}`,
+        // SCHEDULE : "#", // Si gestion d'horaires
     },
-    PATIENT : {
-        ALL : "/secretaire/patient/liste",
-        INTERED : "/secretaire/patient/liste",
-        EXTERNED : "/secretaire/patient/liste",
-        ADD : "/secretaire/add",
-        PROFILE : (id='#') => `/patient/${id}`
+    PATIENT : { // Routes pour la section secrétaire/patient
+        ALL : "/secretaire/patients/liste", // Ajusté pour plus de clarté
+        // INTERED et EXTERNED pointent vers la même liste, filtrage sur la page
+        INTERNED : "/secretaire/patients/liste?statut=Interne", // Exemple avec query param
+        EXTERNED : "/secretaire/patients/liste?statut=Externe",
+        ADD : "/secretaire/patients/ajouter",
+        PROFILE : (id='#') => `/secretaire/patients/${id}` // id ici est souvent le matricule
     },
-    CONSULTATION : (id='#') => `/medicine/${id}`,
-    GRH : {
-        ALL : "/doctors",
-        ADD : "/addDoctor",
-        PROFILE : "/doctor/?id"
+    // Routes pour la section Médecine (Consultations)
+    MEDECINE_CONSULTATION : (id='#') => `/medecine/consultations/${id}`, // Renommé pour clarté
+    MEDECINE_NOUVELLE_PRESCRIPTION_EXAMEN: (consultationId) => `/medecine/consultations/${consultationId}/prescrire-examen`,
+    MEDECINE_NOUVELLE_ORDONNANCE: (consultationId) => `/medecine/consultations/${consultationId}/creer-ordonnance`,
+
+    GRH : { // Routes pour la Gestion des Ressources Humaines
+        ALL_PERSONNEL : "/grh/personnels/liste",
+        ADD_PERSONNEL : "/grh/personnels/ajouter",
+        PROFILE_PERSONNEL : (id='#') => `/grh/personnels/${id}`
+        // ... autres routes GRH (medecins, infirmiers etc. peuvent être ici ou dans leurs sections)
     },
-    PHARMACY : {
-        ALL : "/doctors",
-        ADD : "/addDoctor",
-        PROFILE : (id=null) => "/doctor/?id"
+    PHARMACY : { // Routes pour la section Pharmacie
+        GESTION_STOCK : "/pharmacie/stock",
+        AJOUTER_MEDICAMENT : "/pharmacie/stock/ajouter",
+        EDITER_MEDICAMENT : (id) => `/pharmacie/stock/editer/${id}`,
+        DISPENSATION_ORDONNANCES : "/pharmacie/dispensation",
+        VOIR_ORDONNANCE : (id) => `/pharmacie/dispensation/ordonnances/${id}`,
+        STATISTIQUES : "/pharmacie/statistiques",
+        MEDICAMENTS_STOCK_FAIBLE: "/pharmacie/alertes/stock-faible",
+    },
+    LABORANTIN : { // Routes pour la section Laboratoire
+        TABLEAU_DE_BORD: "/laboratoire/dashboard", // Une page d'accueil pour le laborantin
+        GESTION_TYPES_EXAMENS : "/laboratoire/admin/types-examens",
+        AJOUTER_TYPE_EXAMEN : "/laboratoire/admin/types-examens/ajouter",
+        EDITER_TYPE_EXAMEN : (id) => `/laboratoire/admin/types-examens/editer/${id}`,
+        PRESCRIPTIONS_A_TRAITER : "/laboratoire/prescriptions", // Liste des examens à faire (statut payé)
+        SAISIR_RESULTATS_EXAMEN : (prescriptionId) => `/laboratoire/prescriptions/${prescriptionId}/resultats/saisir`,
+        VOIR_RESULTATS_EXAMEN : (resultatId) => `/laboratoire/resultats/${resultatId}`,
+        HISTORIQUE_RESULTATS_PATIENT: (matricule) => `/laboratoire/patients/${matricule}/resultats`,
+        STATISTIQUES : "/laboratoire/statistiques"
+    },
+    CAISSE: {
+        ENCAISSEMENT_EXAMEN: "/caisse/examens/paiement",
+        ENCAISSEMENT_PHARMACIE: "/caisse/pharmacie/paiement", // Si les paiements pharmacie passent par la caisse centrale
+        HISTORIQUE_TRANSACTIONS: "/caisse/historique"
     },
     redirectTo : (url="#") => {
-        window.location.assign(url)
+        window.location.assign(url);
     }
 };
 
+// ... (Countries, Languages, TimeZones, Postes, Services, PatientStatus, BillStatus restent les mêmes)
 export const Countries = [
     // {code:"00",name:"-- Select Country --"},
     {code:"AF",name:"Afghanistan"},
@@ -1017,14 +1120,17 @@ export const Postes = [
     {name:"Infirmier", code:"NS"},
     {name:"Laborantin", code:"LB"},
     {name:"Plateau Technique", code:"PT"},
+    {name:"Pharmacien", code:"PH"} // Ajout du poste Pharmacien
 ]
 export const Services = [
     {name:"Urgence", code:"OP"},
     {name:"Pediatrie", code:"CS"},
-    {name:"Laboratoire", code:"DR"},
-    {name:"Psychiatrie", code:"NS"},
+    {name:"Laboratoire", code:"DR"}, // Ce code DR est aussi utilisé pour Medecin dans Postes, attention aux conflits si utilisés ensemble.
+    {name:"Psychiatrie", code:"NS"}, // Ce code NS est aussi utilisé pour Infirmier
     {name:"Plateau Technique", code:"PT"},
     {name:"consultation", code:"CO"},
+    {name:"Pharmacie", code:"PH"}, // Ajout service Pharmacie
+    {name:"Caisse", code:"CA"}, // Ajout service Caisse
 ]
 
 export const PatientStatus = [
@@ -1052,43 +1158,84 @@ export const SAMPLE_DATA = {
 export const DataListOf = (entry, id=null) => {
 
     const [datas, setDatas] = useState([]);
-    let entry_link
-    switch(entry){
-        case 'patient':
-            entry_link = wServer.GET.PATIENT.ALL
-            break;
-        case 'doctor':
-            entry_link = wServer.GET.DOCTORS
-            break;
-        case 'login':
-            entry_link = wServer.GET.LOGGED_IN
-            break;
-        default:
-            entry_link = wServer.GET.PATIENT.ALL
-            break;
-    }
-    if (id!==null) entry_link = entry_link + id
-    useEffect(()=> {
-        const loadDatas = async () => {
-            
-            fetch(entry_link, {
-                method: 'GET',
-                redirect: 'follow',
-                headers: {'Authorization': `Token ${localStorage.getItem("_compuclinicToken")}`}
-            })
-            .then((response) => {
-              if (response.status === 200) return response.json();
-            })
-            .then((result) => {
-                // console.log(result);
-                setDatas(result);
-            })
-            .catch(error => console.log('error', error)); 
+    const [loading, setLoading] = useState(true); // Ajout état de chargement
+    const [error, setError] = useState(null); // Ajout état d'erreur
+    let entry_link;
+
+    // Utilisation d'un useEffect pour reconstruire entry_link seulement si 'entry' ou 'id' change.
+    useEffect(() => {
+        switch(entry){
+            case 'patient_all': // Plus spécifique pour éviter confusion
+                entry_link = wServer.GET.PATIENT.ALL;
+                break;
+            case 'patient_profile_v2': // Utilisation de la nouvelle route GET
+                if (id) entry_link = wServer.GET.PATIENT.PROFILE_BY_MATRICULE_V2(id);
+                else {
+                    console.warn("DataListOf: ID manquant pour patient_profile_v2");
+                    setLoading(false);
+                    return;
+                }
+                break;
+            case 'doctor_all':
+                entry_link = wServer.GET.DOCTORS;
+                break;
+            case 'logged_in_user':
+                entry_link = wServer.GET.LOGGED_IN;
+                break;
+            case 'patient':
+                entry_link = wServer.GET.PATIENT.ALL
+                break;
+            case 'doctor':
+                entry_link = wServer.GET.DOCTORS
+                break;
+            case 'login':
+                entry_link = wServer.GET.LOGGED_IN
+                break;
+            default:
+                console.warn(`DataListOf: Type d'entrée non reconnu ou ID manquant - ${entry}`);
+                entry_link = wServer.GET.PATIENT.ALL
+                break;
+                                
         }
+
+        if (id!==null) entry_link = entry_link + id;
+
+        if (!entry_link) { // Si entry_link n'est pas défini après le switch
+            setLoading(false);
+            return;
+        }
+
+        const loadDatas = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await fetch(entry_link, {
+                    method: 'GET', // Explicite, même si c'est le défaut
+                    redirect: 'follow',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem("_compuclinicToken")}`,
+                        'Content-Type': 'application/json' // Bonne pratique
+                    }
+                });
+
+                if (!response.ok) { // Gestion des erreurs HTTP
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                setDatas(result);
+            } catch (err) {
+                console.error('Error in DataListOf hook:', err);
+                setError(err.message);
+                setDatas([]); // Vider les données en cas d'erreur
+            } finally {
+                setLoading(false);
+            }
+        };
   
-        //exec
         loadDatas();
-    }, [])
+    }, [entry, id]); // Dépendances correctes pour useEffect
     
-    return datas
+    return {datas, loading, error}; // Retourner aussi loading et error
 }
+// --- END OF FILE Consts.js (Updated) ---
+

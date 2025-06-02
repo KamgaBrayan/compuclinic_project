@@ -1,245 +1,123 @@
-import React from "react";
+// --- START OF FILE Laboratin.js (Version pour commencer) ---
+import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
+import { Tabs, Tab, Box, Typography, Paper, Grid, CircularProgress } from "@mui/material";
 import PageHeader from "../../components/PageHeader";
-import { Dropdown } from "react-bootstrap";
-import Department from "../../components/Forms/BasicValidation";
-// import AdvancedValidation from "../../components/Forms/AdvancedValidation";
+import { wapp, wServer } from "../../Data/Consts"; // Assurez-vous que ce chemin est correct
+import { useQuery, QueryClient, QueryClientProvider } from 'react-query';
+import axios from 'axios';
+
+// Importer les composants que nous allons créer
+import LabDashboardWidgets from '../../components/Laborantin/LabDashboardWidgets'; // À créer
+import TableTypesExamensLab from '../../components/Laborantin/TableTypesExamensLab'; // À créer
+import TablePrescriptionsLab from '../../components/Laborantin/TablePrescriptionLab'; // À créer
+
+// Hook pour les statistiques (placeholder pour l'instant, on se concentre sur les types d'examens)
+const useGetLabStats = () => {
+    return useQuery('labStats', async () => {
+        // Simule un appel API pour l'instant ou utilisez votre vraie route si prête
+        // const { data } = await axios.get(wServer.GET.LABORANTIN.STATISTIQUES);
+        // return data;
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simuler un délai
+        return { statistiques: [], examensParCategorie: [] }; // Données vides pour l'instant
+    }, { staleTime: 5 * 60 * 1000 });
+};
+
+const LaboratinPageContent = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  // const { data: labStats, isLoading: isLoadingStats, isError: isErrorStats } = useGetLabStats(); // On commentera pour l'instant
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  return (
+    <div style={{ flex: 1 }} onClick={() => { document.body.classList.remove("offcanvas-active"); }}>
+      <div className="container-fluid">
+        <PageHeader
+          HeaderText="Laboratoire d'Analyses Médicales"
+          Breadcrumb={[
+            { name: "Départements", navigate: wapp.DEPARTMENT.ALL },
+            { name: "Laboratoire", navigate: wapp.DEPARTMENT.LABORANTIN },
+          ]}
+        />
+
+        <Box sx={{ width: '100%', typography: 'body1' }}>
+          <Paper elevation={1} sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+            <Tabs 
+              value={activeTab} 
+              onChange={handleTabChange} 
+              aria-label="Onglets du laboratoire"
+              indicatorColor="primary"
+              textColor="primary"
+              variant="scrollable"
+              scrollButtons="auto"
+            >
+              <Tab label="Gestion des Types d'Examens" id="lab-tab-0" aria-controls="lab-tabpanel-0" />
+              <Tab label="Prescriptions à Traiter" id="lab-tab-1" aria-controls="lab-tabpanel-1" />
+              {/* <Tab label="Tableau de Bord" id="lab-tab-2" aria-controls="lab-tabpanel-2" /> Onglet Dashboard si séparé */}
+            </Tabs>
+          </Paper>
+
+          <TabPanel value={activeTab} index={0}>
+            <Paper elevation={0} sx={{ p: 0 }}> {/* p:0 si TableTypesExamensLab a son propre padding */}
+              {/* <Typography variant="h5" gutterBottom sx={{mb:2}}>Gestion des Types d'Examens Disponibles</Typography> */}
+              <TableTypesExamensLab />
+            </Paper>
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={1}>
+            <Paper elevation={0} sx={{ p: 0 }}>
+              {/* <Typography variant="h5" gutterBottom sx={{mb:2}}>Prescriptions d'Examens en Attente de Traitement</Typography> */}
+              <TablePrescriptionsLab />
+            </Paper>
+          </TabPanel>
+
+          {/* <TabPanel value={activeTab} index={2}>
+            {isLoadingStats && <CircularProgress />}
+            {isErrorStats && <Typography color="error">Erreur chargement statistiques.</Typography>}
+            {labStats && <LabDashboardWidgets stats={labStats} />}
+          </TabPanel> */}
+        </Box>
+      </div>
+    </div>
+  );
+}
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`lab-tabpanel-${index}`}
+      aria-labelledby={`lab-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ pt: 2 }}> {/* Ajout d'un peu de padding top */}
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
 
 class Laboratin extends React.Component {
-  componentDidMount() {
-    window.scrollTo(0, 0);
-  }
   render() {
+    const queryClient = new QueryClient();
     return (
-      <div
-        style={{ flex: 1 }}
-        onClick={() => {
-          document.body.classList.remove("offcanvas-active");
-        }}
-      >
-        <div>
-          <div className="container-fluid">
-            <PageHeader
-              HeaderText="All Departments"
-              Breadcrumb={[
-                { name: "Departments", navigate: "" },
-                { name: "Laboratin", navigate: "" },
-              ]}
-            />
-            <div id="bacicTab3pan-3" className="tab-pane">
-                          <div className="col-lg-12">
-                          <div className="card">
-                            <div className="body table-responsive">
-                              <table className="table table-hover">
-                                <thead>
-                                  <tr>
-                                    <th>#</th>
-                                    <th>NUMERO SERIE FIOLE</th>
-                                    <th>ID CONSULTATION</th>
-                                    <th>DATE DE CONSULTATION</th>
-                                    <th>ACTION</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr>
-                                    <th scope="row">1</th>
-                                    <td>Mark</td>
-                                    <td>Otto</td>
-                                    <td>@mdo</td>
-                                    <td><Dropdown>
-                                    <Dropdown.Toggle
-                                      // variant="none"
-                                      // as="a"
-                                      id="dropdown-basic"
-                                      // className="user-name"
-                                    >
-                                      <span>Action</span>
-                                    </Dropdown.Toggle>
-                    
-                                    <Dropdown.Menu className="dropdown-menu-right account">
-                                      <Dropdown.Item href="profilev2page">
-                                        <i className="icon-user"></i>Edit
-                                      </Dropdown.Item>
-                                      <Dropdown.Item href="appinbox">
-                                        {" "}
-                                        <i className="icon-envelope-open"></i>Messages
-                                      </Dropdown.Item>
-                                      <Dropdown.Item>
-                                        {" "}
-                                        <i className="icon-settings"></i>Settings
-                                      </Dropdown.Item>
-                                      <li className="divider"></li>
-                                      <Dropdown.Item href="login">
-                                        {" "}
-                                        <i className="icon-power"></i>Logout
-                                      </Dropdown.Item>
-                                    </Dropdown.Menu>
-                                    </Dropdown></td>
-                                  </tr>
-                                  <tr>
-                                    <th scope="row">2</th>
-                                    <td>Jacob</td>
-                                    <td>Thornton</td>
-                                    <td>@fat</td>
-                                    <td>
-                                    <Dropdown>
-                                    <Dropdown.Toggle
-                                      // variant="none"
-                                      // as="a"
-                                      id="dropdown-basic"
-                                      // className="user-name"
-                                    >
-                                      <span>Action</span>
-                                    </Dropdown.Toggle>
-                    
-                                    <Dropdown.Menu className="dropdown-menu-right account">
-                                      <Dropdown.Item href="profilev2page">
-                                        <i className="icon-user"></i>Edit
-                                      </Dropdown.Item>
-                                      <Dropdown.Item href="appinbox">
-                                        {" "}
-                                        <i className="icon-envelope-open"></i>Messages
-                                      </Dropdown.Item>
-                                      <Dropdown.Item>
-                                        {" "}
-                                        <i className="icon-settings"></i>Settings
-                                      </Dropdown.Item>
-                                      <li className="divider"></li>
-                                      <Dropdown.Item href="login">
-                                        {" "}
-                                        <i className="icon-power"></i>Logout
-                                      </Dropdown.Item>
-                                    </Dropdown.Menu>
-                                    </Dropdown>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <th scope="row">3</th>
-                                    <td>Larry</td>
-                                    <td>the Bird</td>
-                                    <td>@twitter</td>
-                                    <td>
-                                    <Dropdown>
-                                    <Dropdown.Toggle
-                                      // variant="none"
-                                      // as="a"
-                                      id="dropdown-basic"
-                                      // className="user-name"
-                                    >
-                                      <span>Action</span>
-                                    </Dropdown.Toggle>
-                    
-                                    <Dropdown.Menu className="dropdown-menu-right account">
-                                      <Dropdown.Item href="profilev2page">
-                                        <i className="icon-user"></i>Edit
-                                      </Dropdown.Item>
-                                      <Dropdown.Item href="appinbox">
-                                        {" "}
-                                        <i className="icon-envelope-open"></i>Messages
-                                      </Dropdown.Item>
-                                      <Dropdown.Item>
-                                        {" "}
-                                        <i className="icon-settings"></i>Settings
-                                      </Dropdown.Item>
-                                      <li className="divider"></li>
-                                      <Dropdown.Item href="login">
-                                        {" "}
-                                        <i className="icon-power"></i>Logout
-                                      </Dropdown.Item>
-                                    </Dropdown.Menu>
-                                    </Dropdown>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <th scope="row">4</th>
-                                    <td>Larry</td>
-                                    <td>Jellybean</td>
-                                    <td>@lajelly</td>
-                                    <td>
-                                    <Dropdown>
-                                    <Dropdown.Toggle
-                                      // variant="none"
-                                      // as="a"
-                                      id="dropdown-basic"
-                                      // className="user-name"
-                                    >
-                                      <span>Action</span>
-                                    </Dropdown.Toggle>
-                    
-                                    <Dropdown.Menu className="dropdown-menu-right account">
-                                      <Dropdown.Item href="profilev2page">
-                                        <i className="icon-user"></i>Edit
-                                      </Dropdown.Item>
-                                      <Dropdown.Item href="appinbox">
-                                        {" "}
-                                        <i className="icon-envelope-open"></i>Messages
-                                      </Dropdown.Item>
-                                      <Dropdown.Item>
-                                        {" "}
-                                        <i className="icon-settings"></i>Settings
-                                      </Dropdown.Item>
-                                      <li className="divider"></li>
-                                      <Dropdown.Item href="login">
-                                        {" "}
-                                        <i className="icon-power"></i>Logout
-                                      </Dropdown.Item>
-                                    </Dropdown.Menu>
-                                    </Dropdown>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <th scope="row">5</th>
-                                    <td>Larry</td>
-                                    <td>Kikat</td>
-                                    <td>@lakitkat</td>
-                                    <td>
-                                    <Dropdown>
-                                    <Dropdown.Toggle
-                                      // variant="none"
-                                      // as="a"
-                                      id="dropdown-basic"
-                                      // className="user-name"
-                                    >
-                                      <span>Action</span>
-                                    </Dropdown.Toggle>
-                    
-                                    <Dropdown.Menu className="dropdown-menu-right account">
-                                      <Dropdown.Item href="profilev2page">
-                                        <i className="icon-user"></i>Edit
-                                      </Dropdown.Item>
-                                      <Dropdown.Item href="appinbox">
-                                        {" "}
-                                        <i className="icon-envelope-open"></i>Messages
-                                      </Dropdown.Item>
-                                      <Dropdown.Item>
-                                        {" "}
-                                        <i className="icon-settings"></i>Settings
-                                      </Dropdown.Item>
-                                      <li className="divider"></li>
-                                      <Dropdown.Item href="login">
-                                        {" "}
-                                        <i className="icon-power"></i>Logout
-                                      </Dropdown.Item>
-                                    </Dropdown.Menu>
-                                    </Dropdown>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        </div>
-                        </div>
-            {/*<div className="row clearfix">
-              <AdvancedValidation />
-            </div>*/}
-          </div>
-        </div>
-      </div>
+      <QueryClientProvider client={queryClient}>
+        <LaboratinPageContent />
+      </QueryClientProvider>
     );
   }
 }
 
 const mapStateToProps = ({ ioTReducer }) => ({});
-
 export default connect(mapStateToProps, {})(Laboratin);
+// --- END OF FILE Laboratin.js (Version pour commencer) ---

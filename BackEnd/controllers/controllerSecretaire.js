@@ -239,6 +239,21 @@ const addConsultation = async (req, res) => {
 
 }
 
+const getOnePatientByMatriculeParam = async (req, res) => {
+    try {
+        const { matricule } = req.params; // Lire depuis les paramètres d'URL
+        const patientData = await getPatientById(matricule); // Votre fonction existante getPatientById
+        if (patientData) {
+            res.status(200).json(patientData);
+        } else {
+            res.status(404).json({ message: "Patient non trouvé" });
+        }
+    } catch (error) {
+        console.error('Erreur lors de la récupération du patient par matricule param:', error);
+        res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    }
+};
+
 const deletePatientById = async (req, res) => {
     try {
         const matricule = req.params.matricule; // Changed from req.body to req.params
@@ -276,7 +291,7 @@ const deletePatientById = async (req, res) => {
     }
 }
 
-module.exports = { addUnExistingPatient, getOnePatientById, getAllPatients, addConsultation, updatePatientById, deletePatientById };
+module.exports = { addUnExistingPatient, getOnePatientById, getAllPatients, addConsultation, updatePatientById, deletePatientById, getOnePatientByMatriculeParam };
 
 /*
 

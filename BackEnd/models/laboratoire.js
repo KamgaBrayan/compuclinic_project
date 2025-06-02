@@ -44,7 +44,7 @@ const TypeExamen = database.define('TypeExamen', {
         defaultValue: 'autre'
     },
     laborantinId: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à employes.id
         allowNull: true // Permet à un laborantin de créer/gérer ses examens
     }
 });
@@ -56,16 +56,16 @@ const PrescriptionExamen = database.define('PrescriptionExamen', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true
     },
-    matriculePatient: {
-        type: DataTypes.STRING,
+    patientId: {
+        type: DataTypes.INTEGER, // CHANGÉ: utilisation de patientId au lieu de matriculePatient
         allowNull: false
     },
     medecinId: {
-        type: DataTypes.UUID,
-        allowNull: false
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à employes.id
+        allowNull: true
     },
     consultationId: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à consultations.id
         allowNull: true // Car les consultations existantes n'ont pas forcément d'ID UUID
     },
     typeExamenId: {
@@ -111,8 +111,8 @@ const ResultatExamen = database.define('ResultatExamen', {
         allowNull: false
     },
     laborantinId: {
-        type: DataTypes.UUID,
-        allowNull: false
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à employes.id
+        allowNull: true
     },
     resultats: {
         type: DataTypes.JSON // Pour stocker les résultats structurés
@@ -191,8 +191,10 @@ PrescriptionExamen.hasOne(ResultatExamen, { foreignKey: 'prescriptionExamenId' }
 ResultatExamen.belongsTo(PrescriptionExamen, { foreignKey: 'prescriptionExamenId' });
 
 // Relations avec les modèles existants
-PrescriptionExamen.belongsTo(patient, { foreignKey: 'matriculePatient', targetKey: 'matricule' });
+// CHANGÉ: Utilisation de patientId au lieu de matriculePatient pour éviter les problèmes de clé étrangère
+PrescriptionExamen.belongsTo(patient, { foreignKey: 'patientId' });
 PrescriptionExamen.belongsTo(employe, { foreignKey: 'medecinId' });
+PrescriptionExamen.belongsTo(consultation, { foreignKey: 'consultationId' });
 
 ResultatExamen.belongsTo(employe, { foreignKey: 'laborantinId' });
 TypeExamen.belongsTo(employe, { foreignKey: 'laborantinId' });

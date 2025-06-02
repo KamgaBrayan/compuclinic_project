@@ -10,6 +10,8 @@ try {
   router.put("/changestate", medecin.changeStateConsultation);
   router.get("/getConsultations", medecin.getConsultations);
   router.get("/getGemini", ia.gemini);
+  router.post("/gemini", ia.gemini2); // Changer GET en POST
+  router.get("/consultation/:id", medecin.getConsultationById);
   
   // Nouvelles routes pour les examens
   router.get("/types-examens", medecin.getTypesExamensDisponibles);

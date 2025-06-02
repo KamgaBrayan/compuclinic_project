@@ -12,6 +12,7 @@ import {TableIa} from "../../components/Tables/TableIa"
 import axios from 'axios';
 import { useQuery, useQueryClient, useMutation, QueryClient } from 'react-query';
 
+/*
 const wServer = {
   GET: {
     PATIENT: {
@@ -19,12 +20,17 @@ const wServer = {
     }
   }
 }
+*/
 
+/*
 function formatDate(date) {
   const d = new Date(date);
   return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
 }
 
+*/
+
+/*
 function useGetUsers() {
   return useQuery({
     queryKey: ['users'],
@@ -53,6 +59,7 @@ function useGetUsers() {
     refetchOnWindowFocus: false,
   });
 }
+*/
 
 class Medicine extends React.Component {
   constructor(props) {

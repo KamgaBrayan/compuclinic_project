@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Countries, DataListOf, Languages, SAMPLE_DATA, TimeZones } from "../../Data/Consts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPerson, faWeight } from "@fortawesome/free-solid-svg-icons";
@@ -99,11 +99,31 @@ export const CreateConsultationFormModal = ({ isModalOpen=false }) => {
         .catch(error => console.log('error', error)); 
     }
 
-    // const patientList = PatientData()
+    const { datas: patientList, loading: loadingPatients, error: errorPatients } = DataListOf('patient');
+    // Pour les médecins:
+    const { datas: doctorList, loading: loadingDoctors, error: errorDoctors } = DataListOf('doctor');
+
+    // ...
+
+    // Gestion de l'état de chargement et des erreurs (exemple simple)
+    if (loadingPatients || loadingDoctors) {
+        // Vous pouvez afficher un indicateur de chargement dans le modal ou désactiver les selects
+        // Pour l'instant, on peut juste logguer et retourner des options vides ou désactiver
+        console.log("Chargement des listes de patients/médecins...");
+    }
+
+    if (errorPatients) {
+        console.error("Erreur lors du chargement des patients:", errorPatients);
+        // Gérer l'erreur, afficher un message à l'utilisateur
+    }
+    if (errorDoctors) {
+        console.error("Erreur lors du chargement des médecins:", errorDoctors);
+        // Gérer l'erreur
+    }
 
     return ( 
         <>
-        {isModalOpen && document.getElementById("createConsultationModal")?.classList.toggle("show")}
+        {isModalOpen && document.getElementById("DataListOf")?.classList.toggle("show")}
         {state.toast ? (
           <Toast
             id="toast-container"
@@ -121,52 +141,49 @@ export const CreateConsultationFormModal = ({ isModalOpen=false }) => {
           </Toast>
         ) : null}
       <div
-        id="createConsultationModal"
-        //className={isModalOpen ? "modal fade show" : "modal fade"}
-        className={"modal fade"}
-        role="dialog"
-      >
-        <form id="createConsultationForm" onSubmit={submitConsultation}>
-            <div className="modal-dialog" role="document">
-            <div className="modal-content">
-                <div className="modal-header">
-                <h4 className="title" id="defaultModalLabel">
-                    Add Consultation
-                </h4>
-                </div>
-                <div className="modal-body">
-                    <div className="row clearfix">
-                        <div className="col-lg-12 col-md-12">
-                            <div className="row clearfix">
-                                {" "}
-                                <div className="col-md-12">
-                                    <label>
-                                        <small className="text-muted">Patient</small>
-                                    </label>
-                                    <div className="form-group">
-                                        <div className="input-group">
-                                            <div className="input-group-prepend">
-                                                <span className="input-group-text">
-                                                    <FontAwesomeIcon icon={faPerson} size="xl" />
-                                                </span>
-                                            </div>
-                                            <Select
-                                                className="w-75"
-                                                closeMenuOnSelect={true}
-                                                components={animatedComponents}
-                                                // defaultValue={[SAMPLE_DATA.DOCTOR[1]]}
-                                                isMulti={false}
-                                                // options={SAMPLE_DATA.DOCTOR_2}
-                                                options={DataListOf('patient').map((val) => {
-                                                    return({
-                                                        label: `${val.nom} ${val.prenom}`,
-                                                        value: val.id
-                                                    })
-                                                })}
-                                                name="patient"
-                                                required
-                                                // key={`select-${Math.floor(Math.random() * 1000)}`}
-                                                />
+                id="createConsultationModal"
+                className={"modal fade"} // Gardez la gestion de l'ouverture comme avant
+                role="dialog"
+            >
+                <form id="createConsultationForm" onSubmit={submitConsultation}>
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h4 className="title" id="defaultModalLabel">
+                                    Add Consultation
+                                </h4>
+                            </div>
+                            <div className="modal-body">
+                                <div className="row clearfix">
+                                    <div className="col-lg-12 col-md-12">
+                                        <div className="row clearfix">
+                                            <div className="col-md-12">
+                                                <label>
+                                                    <small className="text-muted">Patient</small>
+                                                </label>
+                                                <div className="form-group">
+                                                    <div className="input-group">
+                                                        <div className="input-group-prepend">
+                                                            <span className="input-group-text">
+                                                                <FontAwesomeIcon icon={faPerson} size="xl" />
+                                                            </span>
+                                                        </div>
+                                                        <Select
+                                                            className="w-75"
+                                                            closeMenuOnSelect={true}
+                                                            components={animatedComponents}
+                                                            isMulti={false}
+                                                            // UTILISATION CORRECTE DE patientList
+                                                            options={(Array.isArray(patientList) ? patientList : []).map((val) => {
+                                                                return ({
+                                                                    label: `${val.nom} ${val.prenom}`, // Assurez-vous que 'nom' et 'prenom' existent sur val
+                                                                    value: val.id // Assurez-vous que 'id' existe sur val
+                                                                });
+                                                            })}
+                                                            name="patient"
+                                                            required
+                                                            isLoading={loadingPatients} // react-select peut afficher un loader
+                                                        />
                                                 {/* <AsyncSelect /> */}
                                         </div>
                                     </div>
@@ -187,28 +204,26 @@ export const CreateConsultationFormModal = ({ isModalOpen=false }) => {
 
                         </div>
                         <div className="col-lg-12 col-md-12">
-                        
-                            {" "}
-                            <label>
-                            <small className="text-muted">Médecin</small>
-                            </label>
-                            <div className="form-group">
-                                <Select
-                                    className="w-100"
-                                    closeMenuOnSelect={true}
-                                    components={animatedComponents}
-                                    // defaultValue={[SAMPLE_DATA.DOCTOR[1]]}
-                                    isMulti={false}
-                                    options={DataListOf('doctor').map((val) => {
-                                        return({
-                                            label: `${val.nom} ${val.prenom}`,
-                                            value: val.id
-                                        })
-                                    })}
-                                    name="medecin"
-                                    required
-                                    // key={`select-${Math.floor(Math.random() * 1000)}`}
-                                    />
+                                        <label>
+                                            <small className="text-muted">Médecin</small>
+                                        </label>
+                                        <div className="form-group">
+                                            <Select
+                                                className="w-100"
+                                                closeMenuOnSelect={true}
+                                                components={animatedComponents}
+                                                isMulti={false}
+                                                // UTILISATION CORRECTE DE doctorList
+                                                options={(Array.isArray(doctorList) ? doctorList : []).map((val) => {
+                                                    return ({
+                                                        label: `${val.nom} ${val.prenom}`, // Assurez-vous que 'nom' et 'prenom' existent
+                                                        value: val.id // Assurez-vous que 'id' existe
+                                                    });
+                                                })}
+                                                name="medecin"
+                                                required
+                                                isLoading={loadingDoctors} // react-select peut afficher un loader
+                                            />
                             </div>
                             
                         </div>
@@ -218,7 +233,7 @@ export const CreateConsultationFormModal = ({ isModalOpen=false }) => {
                     <div className="col">
                         <button type="submit" className="btn btn-primary btn-block"
                             // onClick={() => {
-                            //     document.getElementById("createConsultationModal").classList.toggle("show")
+                            //     document.getElementById("DataListOf").classList.toggle("show")
                             // }}
                         >
                             Add
@@ -228,7 +243,7 @@ export const CreateConsultationFormModal = ({ isModalOpen=false }) => {
                     <button
                         type="button"
                         onClick={() => {
-                        document.getElementById("createConsultationModal").classList.toggle("show")
+                        document.getElementById("DataListOf").classList.toggle("show")
                         }}
                         className="btn btn-simple btn-block btn-danger"
                         data-dismiss="modal"

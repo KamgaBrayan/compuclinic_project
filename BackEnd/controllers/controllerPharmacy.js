@@ -1,15 +1,16 @@
-const { Drug, DrugDosage, Invoice, InvoiceItem, Patient } = require('../models/pharmacy'); // Import your Drug, DrugDosage, Invoice, InvoiceItem and Patient models
-const { Op } = require('sequelize'); // Import Sequelize operators
-const database = require('../database'); // Import database instance
+const { Drug, DrugDosage } = require('../models/pharmacy');
+const { PrescriptionMedicament, DispensationMedicament, Ordonnance } = require('../models/prescription');
+const { personne, patient } = require('../models/personne');
+const { Op } = require('sequelize');
+const database = require('../database');
 
 /**
  * Search for drugs by a specific field.
  */
 const searchDrugs = async (req, res) => {
   try {
-    const { field, query } = req.query; // Search field and query
+    const { field, query } = req.query;
 
-    // Define meaningful fields to search
     const searchableFields = [
       'name',
       'genericName',
@@ -18,20 +19,17 @@ const searchDrugs = async (req, res) => {
       'comment',
     ];
 
-    // Validate the search field
     if (!searchableFields.includes(field)) {
       return res.status(400).json({ message: 'Invalid search field' });
     }
 
-    // Build the WHERE clause dynamically
     const whereClause = {
-      [field]: { [Op.like]: `%${query}%` }, // Case-insensitive search
+      [field]: { [Op.like]: `%${query}%` },
     };
 
-    // Search for drugs and include dosages
     const drugs = await Drug.findAll({
       where: whereClause,
-      include: DrugDosage, // Include dosage information
+      include: DrugDosage,
     });
 
     res.status(200).json({ drugs });
@@ -61,7 +59,6 @@ const createDrug = async (req, res) => {
       comment,
     } = req.body;
 
-    // Create the drug
     const newDrug = await Drug.create({
       name,
       photoUrl,
@@ -89,16 +86,14 @@ const createDrug = async (req, res) => {
  */
 const editDrug = async (req, res) => {
   try {
-    const { id } = req.params; // Drug ID
-    const updates = req.body; // Fields to update
+    const { id } = req.params;
+    const updates = req.body;
 
-    // Find the drug by ID
     const drug = await Drug.findByPk(id);
     if (!drug) {
       return res.status(404).json({ message: 'Drug not found' });
     }
 
-    // Update the drug
     await drug.update(updates);
 
     res.status(200).json({ message: 'Drug updated successfully', drug });
@@ -113,15 +108,13 @@ const editDrug = async (req, res) => {
  */
 const deleteDrug = async (req, res) => {
   try {
-    const { id } = req.params; // Drug ID
+    const { id } = req.params;
 
-    // Find the drug by ID
     const drug = await Drug.findByPk(id);
     if (!drug) {
       return res.status(404).json({ message: 'Drug not found' });
     }
 
-    // Delete the drug
     await drug.destroy();
 
     res.status(200).json({ message: 'Drug deleted successfully' });
@@ -136,9 +129,8 @@ const deleteDrug = async (req, res) => {
  */
 const getAllDrugs = async (req, res) => {
   try {
-    // Fetch all drugs and include dosages
     const drugs = await Drug.findAll({
-      include: DrugDosage, // Include dosage information
+      include: DrugDosage,
     });
 
     res.status(200).json({ drugs });
@@ -153,11 +145,10 @@ const getAllDrugs = async (req, res) => {
  */
 const getDrugById = async (req, res) => {
   try {
-    const { id } = req.params; // Drug ID
+    const { id } = req.params;
 
-    // Find the drug by ID and include dosages
     const drug = await Drug.findByPk(id, {
-      include: DrugDosage, // Include dosage information
+      include: DrugDosage,
     });
 
     if (!drug) {
@@ -176,16 +167,14 @@ const getDrugById = async (req, res) => {
  */
 const addDrugDosage = async (req, res) => {
   try {
-    const { drugId } = req.params; // Drug ID
+    const { drugId } = req.params;
     const { fromAge, toAge, dose } = req.body;
 
-    // Check if the drug exists
     const drug = await Drug.findByPk(drugId);
     if (!drug) {
       return res.status(404).json({ message: 'Drug not found' });
     }
 
-    // Create the dosage
     const newDosage = await DrugDosage.create({
       drugId,
       fromAge,
@@ -207,10 +196,9 @@ const getDrugDosages = async (req, res) => {
   try {
     const { drugId } = req.params;
     
-    // Find all dosages for the drug
     const dosages = await DrugDosage.findAll({
       where: { drugId: drugId },
-      order: [['fromAge', 'ASC']] // Order by age range
+      order: [['fromAge', 'ASC']]
     });
 
     if (!dosages) {
@@ -224,204 +212,335 @@ const getDrugDosages = async (req, res) => {
   }
 };
 
-/*
-//  Create a new invoice with items
-
-const createInvoice = async (req, res) => {
+/**
+ * Get all ordonnances with detailed information
+ */
+const getAllOrdonnances = async (req, res) => {
   try {
-    const { patientId, items, totalAmount, paymentMethod } = req.body;
-
-    // Validate required fields
-    if (!patientId || !items || !totalAmount || !paymentMethod) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    // Start a transaction
-    const result = await database.transaction(async (t) => {
-      // Create invoice
-      const invoice = await Invoice.create({
-        patientId,
-        totalAmount,
-        paymentMethod,
-        status: 'pending'
-      }, { transaction: t });
-
-      // Create invoice items and update drug stock
-      for (const item of items) {
-        const drug = await Drug.findByPk(item.drugId, { transaction: t });
-        if (!drug) {
-          throw new Error(`Drug with id ${item.drugId} not found`);
-        }
-
-        if (drug.stock < item.quantity) {
-          throw new Error(`Insufficient stock for drug ${drug.name}`);
-        }
-
-        // Create invoice item
-        await InvoiceItem.create({
-          invoiceId: invoice.id,
-          drugId: item.drugId,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          subtotal: item.subtotal
-        }, { transaction: t });
-
-        // Update drug stock
-        await drug.update({
-          stock: drug.stock - item.quantity
-        }, { transaction: t });
-      }
-
-      // Return created invoice with items
-      return invoice;
-    });
-
-    // Fetch complete invoice with items and patient info
-    const completeInvoice = await Invoice.findByPk(result.id, {
-      include: [
-        {
-          model: InvoiceItem,
-          as: 'items',
-          include: [Drug]
-        },
-        {
-          model: Patient
-        }
-      ]
-    });
-
-    res.status(201).json(completeInvoice);
-  } catch (error) {
-    console.error('Error creating invoice:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
- //Get all invoices with their items and patient info
- 
-const getAllInvoices = async (req, res) => {
-  try {
-    const invoices = await Invoice.findAll({
-      include: [
-        {
-          model: InvoiceItem,
-          as: 'items',
-          include: [Drug]
-        },
-        {
-          model: Patient
-        }
-      ],
-      order: [['date', 'DESC']]
-    });
-
-    res.status(200).json(invoices);
-  } catch (error) {
-    console.error('Error fetching invoices:', error);
-    res.status(500).json({ message: 'Error fetching invoices' });
-  }
-};
-
-
-// Get invoice by ID with items and patient info
- 
-const getInvoiceById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const invoice = await Invoice.findByPk(id, {
-      include: [
-        {
-          model: InvoiceItem,
-          as: 'items',
-          include: [Drug]
-        },
-        {
-          model: Patient
-        }
-      ]
-    });
-
-    if (!invoice) {
-      return res.status(404).json({ message: 'Invoice not found' });
-    }
-
-    res.status(200).json(invoice);
-  } catch (error) {
-    console.error('Error fetching invoice:', error);
-    res.status(500).json({ message: 'Error fetching invoice' });
-  }
-};
-
-
- // Update invoice status
- 
-const updateInvoiceStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    const invoice = await Invoice.findByPk(id);
-    if (!invoice) {
-      return res.status(404).json({ message: 'Invoice not found' });
-    }
-
-    await invoice.update({ status });
-    res.status(200).json(invoice);
-  } catch (error) {
-    console.error('Error updating invoice status:', error);
-    res.status(500).json({ message: 'Error updating invoice status' });
-  }
-};
-
-
- // Search invoices by patient name or date range
- 
-const searchInvoices = async (req, res) => {
-  try {
-    const { patientName, startDate, endDate } = req.query;
+    const { statut, dateDebut, dateFin } = req.query;
+    
     let whereClause = {};
-    let patientWhereClause = {};
-
-    if (startDate && endDate) {
-      whereClause.date = {
-        [Op.between]: [new Date(startDate), new Date(endDate)]
+    if (statut) whereClause.statut = statut;
+    if (dateDebut && dateFin) {
+      whereClause.dateOrdonnance = {
+        [Op.between]: [new Date(dateDebut), new Date(dateFin)]
       };
     }
 
-    if (patientName) {
-      patientWhereClause = {
-        [Op.or]: [
-          { firstName: { [Op.like]: `%${patientName}%` } },
-          { lastName: { [Op.like]: `%${patientName}%` } }
-        ]
-      };
-    }
-
-    const invoices = await Invoice.findAll({
+    const ordonnances = await Ordonnance.findAll({
       where: whereClause,
       include: [
         {
-          model: InvoiceItem,
-          as: 'items',
+          model: PrescriptionMedicament,
           include: [Drug]
-        },
-        {
-          model: Patient,
-          where: patientWhereClause,
-          required: !!patientName
         }
       ],
-      order: [['date', 'DESC']]
+      order: [['dateOrdonnance', 'DESC']]
     });
 
-    res.status(200).json(invoices);
+    // Enrichir avec les informations du patient
+    const ordonnancesEnrichies = await Promise.all(ordonnances.map(async (ordonnance) => {
+      const infoPatient = await getPatientInfo(ordonnance.matriculePatient);
+      return {
+        ...ordonnance.toJSON(),
+        patientInfo: infoPatient
+      };
+    }));
+
+    res.status(200).json({ ordonnances: ordonnancesEnrichies });
   } catch (error) {
-    console.error('Error searching invoices:', error);
-    res.status(500).json({ message: 'Error searching invoices' });
+    console.error('Error fetching ordonnances:', error);
+    res.status(500).json({ 
+      message: 'Error fetching ordonnances', 
+      error: error.message 
+    });
   }
 };
-*/
+
+/**
+ * Get ordonnance by ID
+ */
+const getOrdonnanceById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const ordonnance = await Ordonnance.findByPk(id, {
+      include: [
+        {
+          model: PrescriptionMedicament,
+          include: [
+            {
+              model: Drug,
+              include: [DrugDosage]
+            },
+            {
+              model: DispensationMedicament
+            }
+          ]
+        }
+      ]
+    });
+
+    if (!ordonnance) {
+      return res.status(404).json({ message: 'Ordonnance not found' });
+    }
+
+    // Enrichir avec les informations du patient
+    const infoPatient = await getPatientInfo(ordonnance.matriculePatient);
+    
+    res.status(200).json({ 
+      ordonnance: {
+        ...ordonnance.toJSON(),
+        patientInfo: infoPatient
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching ordonnance:', error);
+    res.status(500).json({ 
+      message: 'Error fetching ordonnance', 
+      error: error.message 
+    });
+  }
+};
+
+/**
+ * Dispenser des médicaments à partir d'une prescription
+ */
+const dispenserMedicament = async (req, res) => {
+  try {
+    const { prescriptionId } = req.params;
+    const { 
+      pharmacienId, 
+      quantiteDispensee, 
+      prixUnitaire, 
+      observations 
+    } = req.body;
+
+    // Vérifier que la prescription existe
+    const prescription = await PrescriptionMedicament.findByPk(prescriptionId, {
+      include: [Drug]
+    });
+    
+    if (!prescription) {
+      return res.status(404).json({ message: 'Prescription not found' });
+    }
+
+    // Vérifier le stock disponible
+    if (prescription.Drug.stock < quantiteDispensee) {
+      return res.status(400).json({ 
+        message: 'Stock insuffisant', 
+        stockDisponible: prescription.Drug.stock 
+      });
+    }
+
+    // Calculer le sous-total
+    const sousTotal = quantiteDispensee * prixUnitaire;
+
+    // Créer la dispensation dans une transaction
+    const result = await database.transaction(async (t) => {
+      // Créer la dispensation
+      const dispensation = await DispensationMedicament.create({
+        prescriptionMedicamentId: prescriptionId,
+        pharmacienId,
+        quantiteDispensee,
+        prixUnitaire,
+        sousTotal,
+        observations
+      }, { transaction: t });
+
+      // Mettre à jour le stock
+      await prescription.Drug.update({
+        stock: prescription.Drug.stock - quantiteDispensee
+      }, { transaction: t });
+
+      // Calculer la quantité totale dispensée
+      const totalDispense = await DispensationMedicament.sum('quantiteDispensee', {
+        where: { prescriptionMedicamentId: prescriptionId },
+        transaction: t
+      });
+
+      // Mettre à jour le statut de la prescription
+      let nouveauStatut = 'prescrit';
+      if (totalDispense >= prescription.quantitePrescrite) {
+        nouveauStatut = 'entierement_servi';
+      } else if (totalDispense > 0) {
+        nouveauStatut = 'partiellement_servi';
+      }
+
+      await prescription.update({ statut: nouveauStatut }, { transaction: t });
+
+      return dispensation;
+    });
+
+    res.status(201).json({ 
+      message: 'Médicament dispensé avec succès', 
+      dispensation: result 
+    });
+  } catch (error) {
+    console.error('Error dispensing medication:', error);
+    res.status(500).json({ 
+      message: 'Error dispensing medication', 
+      error: error.message 
+    });
+  }
+};
+
+/**
+ * Get low stock drugs
+ */
+const getLowStockDrugs = async (req, res) => {
+  try {
+    const lowStockDrugs = await Drug.findAll({
+      where: database.where(
+        database.col('stock'),
+        Op.lte,
+        database.col('minStockThreshold')
+      ),
+      order: [['stock', 'ASC']]
+    });
+
+    res.status(200).json({ drugs: lowStockDrugs });
+  } catch (error) {
+    console.error('Error fetching low stock drugs:', error);
+    res.status(500).json({ 
+      message: 'Error fetching low stock drugs', 
+      error: error.message 
+    });
+  }
+};
+
+/**
+ * Get pharmacy statistics
+ */
+const getPharmacyStatistics = async (req, res) => {
+  try {
+    const { dateDebut, dateFin } = req.query;
+    
+    let whereClause = {};
+    if (dateDebut && dateFin) {
+      whereClause.dateDispensation = {
+        [Op.between]: [new Date(dateDebut), new Date(dateFin)]
+      };
+    }
+
+    // Statistiques des dispensations
+    const totalDispensations = await DispensationMedicament.count({
+      where: whereClause
+    });
+
+    const chiffreAffaires = await DispensationMedicament.sum('sousTotal', {
+      where: whereClause
+    });
+
+    // Médicaments les plus dispensés
+    const topMedicaments = await DispensationMedicament.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: PrescriptionMedicament,
+          include: [Drug]
+        }
+      ],
+      attributes: [
+        [database.col('PrescriptionMedicament.Drug.name'), 'nomMedicament'],
+        [database.fn('SUM', database.col('quantiteDispensee')), 'quantiteTotale'],
+        [database.fn('SUM', database.col('sousTotal')), 'chiffreAffaires']
+      ],
+      group: ['PrescriptionMedicament.Drug.id'],
+      order: [[database.fn('SUM', database.col('quantiteDispensee')), 'DESC']],
+      limit: 10
+    });
+
+    // Stock critique
+    const stockCritique = await Drug.count({
+      where: database.where(
+        database.col('stock'),
+        Op.lte,
+        database.col('minStockThreshold')
+      )
+    });
+
+    res.status(200).json({
+      totalDispensations,
+      chiffreAffaires: chiffreAffaires || 0,
+      topMedicaments,
+      stockCritique
+    });
+  } catch (error) {
+    console.error('Error fetching pharmacy statistics:', error);
+    res.status(500).json({ 
+      message: 'Error fetching pharmacy statistics', 
+      error: error.message 
+    });
+  }
+};
+
+/**
+ * Update drug stock
+ */
+const updateDrugStock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { quantite, operation, motif } = req.body; // operation: 'add' ou 'subtract'
+
+    const drug = await Drug.findByPk(id);
+    if (!drug) {
+      return res.status(404).json({ message: 'Drug not found' });
+    }
+
+    let newStock;
+    if (operation === 'add') {
+      newStock = drug.stock + quantite;
+    } else if (operation === 'subtract') {
+      if (drug.stock < quantite) {
+        return res.status(400).json({ message: 'Stock insuffisant' });
+      }
+      newStock = drug.stock - quantite;
+    } else {
+      return res.status(400).json({ message: 'Operation invalide. Utilisez "add" ou "subtract"' });
+    }
+
+    await drug.update({ stock: newStock });
+
+    res.status(200).json({ 
+      message: 'Stock mis à jour avec succès', 
+      drug,
+      motif 
+    });
+  } catch (error) {
+    console.error('Error updating drug stock:', error);
+    res.status(500).json({ 
+      message: 'Error updating drug stock', 
+      error: error.message 
+    });
+  }
+};
+
+// Fonction utilitaire pour récupérer les infos patient
+const getPatientInfo = async (matricule) => {
+  try {
+    const patientRecord = await patient.findOne({
+      where: { matricule },
+      include: [personne]
+    });
+
+    if (patientRecord && patientRecord.personne) {
+      return {
+        matricule,
+        nom: patientRecord.personne.lastName,
+        prenom: patientRecord.personne.firstName,
+        sexe: patientRecord.personne.sex,
+        dateNaissance: patientRecord.personne.birthDate,
+        telephone: patientRecord.personne.tel,
+        email: patientRecord.personne.email
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Erreur récupération info patient:', error);
+    return null;
+  }
+};
 
 module.exports = {
   createDrug,
@@ -432,4 +551,10 @@ module.exports = {
   searchDrugs,
   addDrugDosage,
   getDrugDosages,
+  getAllOrdonnances,
+  getOrdonnanceById,
+  dispenserMedicament,
+  getLowStockDrugs,
+  getPharmacyStatistics,
+  updateDrugStock
 };

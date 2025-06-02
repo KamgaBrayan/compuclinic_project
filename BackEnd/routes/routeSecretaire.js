@@ -12,6 +12,7 @@ router.get('/protected', authenticateJWT, (req, res) => {
 try {
   router.post("/addUnExistingPatient", secretaire.addUnExistingPatient);
   router.get("/getPatientById", secretaire.getOnePatientById);
+  router.get("/getPatientById/:matricule", secretaire.getOnePatientByMatriculeParam);
   router.get("/getPatients", secretaire.getAllPatients);
   router.post("/addConsultation",secretaire.addConsultation);
   router.put("/updatePatientById",secretaire.updatePatientById);

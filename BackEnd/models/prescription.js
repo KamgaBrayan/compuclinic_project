@@ -12,21 +12,21 @@ const PrescriptionMedicament = database.define('PrescriptionMedicament', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true
     },
-    matriculePatient: {
-        type: DataTypes.STRING,
+    patientId: {
+        type: DataTypes.INTEGER, // CHANGÉ: utilisation de patientId au lieu de matriculePatient
         allowNull: false
     },
     medecinId: {
-        type: DataTypes.UUID,
-        allowNull: false
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à employes.id
+        allowNull: true
     },
     consultationId: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à consultations.id
         allowNull: false
     },
     medicamentId: {
         type: DataTypes.UUID,
-        allowNull: false
+        allowNull: true
     },
     posologie: {
         type: DataTypes.STRING,
@@ -64,8 +64,8 @@ const DispensationMedicament = database.define('DispensationMedicament', {
         allowNull: false
     },
     pharmacienId: {
-        type: DataTypes.UUID,
-        allowNull: false
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à employes.id
+        allowNull: true
     },
     quantiteDispensee: {
         type: DataTypes.INTEGER,
@@ -100,16 +100,16 @@ const Ordonnance = database.define('Ordonnance', {
         unique: true,
         allowNull: false
     },
-    matriculePatient: {
-        type: DataTypes.STRING,
+    patientId: {
+        type: DataTypes.INTEGER, // CHANGÉ: utilisation de patientId au lieu de matriculePatient
         allowNull: false
     },
     medecinId: {
-        type: DataTypes.UUID,
-        allowNull: false
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à employes.id
+        allowNull: true
     },
     consultationId: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER, // CHANGÉ DE UUID À INTEGER pour correspondre à consultations.id
         allowNull: false
     },
     dateOrdonnance: {
@@ -139,11 +139,18 @@ PrescriptionMedicament.hasMany(DispensationMedicament, { foreignKey: 'prescripti
 DispensationMedicament.belongsTo(PrescriptionMedicament, { foreignKey: 'prescriptionMedicamentId' });
 
 // Relations avec modèles existants
-Ordonnance.belongsTo(patient, { foreignKey: 'matriculePatient', targetKey: 'matricule' });
+Ordonnance.belongsTo(patient, { foreignKey: 'patientId' });
 Ordonnance.belongsTo(consultation, { foreignKey: 'consultationId' });
 
-PrescriptionMedicament.belongsTo(patient, { foreignKey: 'matriculePatient', targetKey: 'matricule' });
+PrescriptionMedicament.belongsTo(patient, { foreignKey: 'patientId' });
 PrescriptionMedicament.belongsTo(consultation, { foreignKey: 'consultationId' });
+
+// Relations avec employes (médecins et pharmaciens)
+const { employe } = require('./personne');
+
+Ordonnance.belongsTo(employe, { foreignKey: 'medecinId', as: 'medecin' });
+PrescriptionMedicament.belongsTo(employe, { foreignKey: 'medecinId', as: 'medecin' });
+DispensationMedicament.belongsTo(employe, { foreignKey: 'pharmacienId', as: 'pharmacien' });
 
 module.exports = {
     PrescriptionMedicament,
