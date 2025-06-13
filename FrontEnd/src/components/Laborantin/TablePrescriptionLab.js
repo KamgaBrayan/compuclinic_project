@@ -1,12 +1,10 @@
 // --- START OF FILE TablePrescriptionsLab.js ---
 import React, { useMemo, useState } from 'react';
 import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
-import { Box, Button, IconButton, Tooltip, Typography, Chip, CircularProgress, Paper } from '@mui/material';
+import { Box, IconButton, Tooltip, Typography, Chip, CircularProgress } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'; // Commencer
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'; // Valider
 import EditNoteIcon from '@mui/icons-material/EditNote'; // Saisir/Modifier Résultats
 import VisibilityIcon from '@mui/icons-material/Visibility'; // Voir détails
-
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
 import { wServer } from '../../Data/Consts'; // Ajustez le chemin
@@ -15,22 +13,17 @@ import { wServer } from '../../Data/Consts'; // Ajustez le chemin
 import SaisirResultatsExamenModal from './SaisirResultatsExamenModal';
 
 // Hook pour récupérer les prescriptions en attente/en cours
-const useGetPrescriptionsLab = (statutFiltre = ['paye', 'en_cours']) => { // Par défaut: payé ou en cours
+const useGetPrescriptionsLab = (statutFiltre = ['prescrit', 'paye', 'en_cours']) => {
     return useQuery(['labPrescriptions', statutFiltre], async () => {
-        // L'API backend devrait permettre de filtrer par plusieurs statuts
-        // Exemple: /api/laborantin/prescriptions?statut=paye&statut=en_cours
-        // Pour l'instant, on suppose que l'API retourne tout et on filtre côté client,
-        // ou que l'API prend un seul statut. Idéalement, l'API gère plusieurs statuts.
-        
-        // Si l'API ne prend qu'un statut, il faudra faire plusieurs appels ou ajuster l'API.
-        // Pour cet exemple, on va imaginer que l'API peut prendre un tableau de statuts
-        // ou qu'on fait un appel générique et filtre ensuite (moins optimal).
         const params = new URLSearchParams();
         statutFiltre.forEach(s => params.append('statut', s));
         
-        const { data } = await axios.get(`${wServer.GET.LABORANTIN.PRESCRIPTIONS_EN_ATTENTE}?${params.toString()}`);
-        // La réponse devrait être un tableau de prescriptions enrichies
-        // { prescriptions: [{id, patientInfo, TypeExamen: {nom, ...}, medecinInfo, urgence, statut, datePrescription}, ...] }
+        const url = `${wServer.GET.LABORANTIN.PRESCRIPTIONS_EN_ATTENTE}?${params.toString()}`;
+        console.log("Laborantin - Appel API GET vers:", url); // << AJOUTER CE LOG
+        
+        const { data } = await axios.get(url);
+        console.log("Laborantin - Réponse de PRESCRIPTIONS_EN_ATTENTE:", data); // << AJOUTER CE LOG
+        
         return Array.isArray(data.prescriptions) ? data.prescriptions : [];
     }, {
       refetchOnWindowFocus: false,
@@ -47,9 +40,9 @@ const useUpdatePrescriptionStatut = () => {
             // action pourrait être 'commencer' ou 'valider'
             let url;
             if (action === 'commencer') {
-                url = wServer.PUT.LABORANTIN.COMMENCER_EXAMEN(prescriptionId);
+                url = wServer.ACTION_POST.PUT.LABORANTIN.COMMENCER_EXAMEN(prescriptionId);
             } else if (action === 'valider') {
-                url = wServer.PUT.LABORANTIN.VALIDER_RESULTATS(prescriptionId);
+                url = wServer.ACTION_POST.PUT.LABORANTIN.VALIDER_RESULTATS(prescriptionId);
             } else {
                 throw new Error("Action non supportée");
             }
@@ -75,7 +68,7 @@ const useUpdatePrescriptionStatut = () => {
 
 const TablePrescriptionsLab = () => {
     // Pour l'instant, on récupère les statuts 'paye' et 'en_cours'
-    const { data: prescriptions = [], isLoading, isError, isFetching } = useGetPrescriptionsLab(['paye', 'en_cours']);
+    const { data: prescriptions = [], isLoading, isError, isFetching } = useGetPrescriptionsLab(['paye', 'en_cours']); // Tu avais remis 'paye', 'en_cours' ici, assure-toi que c'est ce que tu veux pour le test.
     const { mutateAsync: updateStatut, isLoading: isUpdatingStatut } = useUpdatePrescriptionStatut();
 
     const [isSaisieResultatModalOpen, setIsSaisieResultatModalOpen] = useState(false);
@@ -178,15 +171,7 @@ const TablePrescriptionsLab = () => {
                             </IconButton>
                         </Tooltip>
                     )}
-                    {/* La validation se fera après la saisie des résultats, potentiellement depuis le modal de saisie ou une action séparée ici si un résultat partiel existe */}
-                    {/* Exemple: si un résultat est saisi mais non validé */}
-                    {/* {prescription.statut === 'en_cours' && prescription.ResultatExamen && !prescription.ResultatExamen.valide && (
-                        <Tooltip title="Valider les Résultats">
-                            <IconButton color="success" onClick={() => handleAction(prescription.id, 'valider')} disabled={isUpdatingStatut}>
-                                <AssignmentTurnedInIcon />
-                            </IconButton>
-                        </Tooltip>
-                    )} */}
+                    
                     <Tooltip title="Voir Détails Prescription">
                          <IconButton onClick={() => console.log("Voir détails:", prescription)}>
                             <VisibilityIcon />
@@ -203,15 +188,21 @@ const TablePrescriptionsLab = () => {
 
     return (
         <Box>
-            { <SaisirResultatsExamenModal
+            <SaisirResultatsExamenModal
                 open={isSaisieResultatModalOpen}
-                onClose={() => setIsSaisieResultatModalOpen(false)}
+                onClose={() => {
+                    console.log("Fermeture du modal");
+                    setIsSaisieResultatModalOpen(false);
+                    setSelectedPrescriptionForResultats(null);
+                }}
                 prescriptionData={selectedPrescriptionForResultats}
-                // laborantinId={ID_LAB_CONNECTE}
-            /> }
+                // laborantinId="ID_LAB_CONNECTE" // À remplacer
+            />
+
             <MaterialReactTable table={table} />
-             {(isUpdatingStatut) && (
-                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, mt:1, backgroundColor: 'action.hover' }}>
+        
+            {(isUpdatingStatut) && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2, mt:1, backgroundColor: 'action.hover' }}>
                     <CircularProgress size={20} sx={{mr: 1}} />
                     <Typography variant="body2">Mise à jour du statut...</Typography>
                 </Box>

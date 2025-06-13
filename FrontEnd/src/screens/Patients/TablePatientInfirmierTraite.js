@@ -1,33 +1,18 @@
 import { Services,wServer } from "../../Data/Consts";
 import axios from "axios";
 import React,{ useMemo, useState}  from 'react';
-import {
-  MRT_EditActionButtons,
-  MaterialReactTable,
-  // createRow,
-  useMaterialReactTable,
-} from 'material-react-table';
-import {
-  Box,
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
-import { useQuery,QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQueryClient, } from 'react-query';
-import { fakeData, serviceStates } from './makeData';
+import { MRT_EditActionButtons, MaterialReactTable, useMaterialReactTable} from 'material-react-table';
+import { Box, DialogActions, DialogContent, DialogTitle, IconButton, Tooltip} from '@mui/material';
+import { useQuery, QueryClient, QueryClientProvider, useMutation, useQueryClient, } from 'react-query';
+
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { useNotification } from "../../reducers/NotificationContext";
 
 const Table = () => {
 
   let dataService = Services.map(service => service.name);
   const [validationErrors, setValidationErrors] = useState({});
+  const {showNotification} = useNotification();
 
   const columns = useMemo(
     () => [
@@ -349,11 +334,6 @@ const Table = () => {
             <EditIcon />
           </IconButton>
         </Tooltip>
-        {/* <Tooltip title="Delete">
-          <IconButton color="error" onClick={() => openDeleteConfirmModal(row)}>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip> */}
       </Box>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
@@ -371,80 +351,10 @@ const Table = () => {
   return <MaterialReactTable table={table} />;
 };
 
-// //CREATE hook (post new user to api)
-// function useCreateUser() {
-//   const setCreate =  async (patient) => {
-//     return axios.post(wServer.CREATE.PATIENT, patient)
-//       .then(response => {
-//         return response.data; // Si vous souhaitez retourner des données spécifiques
-//       })
-//       .catch(error => {
-//         console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
-//         throw error; // Propage l'erreur pour que les gestionnaires de promesses puissent la gérer
-//       });
-//   }
-//   return {mutateAsync:setCreate,isPending: false}
-  
-//   return  ""
-//   // useMutation({
-//   //   mutationFn: async (user) => {
-//   //     //send api update request here
-//   //     await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-//   //     return Promise.resolve();
-//   //   },
-//   //   //client side optimistic update
-//   //   onMutate: (newUserInfo) => {
-//   //     queryClient.setQueryData(['users'], (prevUsers) => [
-//   //       ...prevUsers,
-//   //       {
-//   //         ...newUserInfo,
-//   //         id: (Math.random() + 1).toString(36).substring(7),
-//   //       },
-//   //     ]);
-//   //   },
-//   //   // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-//   // });
-// }
-
-// import axios from 'axios'; // Assurez-vous que Axios est importé correctement
-
-// // Mettez à jour la fonction useCreateUser
-// function useCreateUser() {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: async (newUserInfo) => {
-//       try {
-//         // Utilisation de Axios pour envoyer les données à l'API
-//         const response = await axios.post(wServer.CREATE.PATIENT, newUserInfo);
-
-//         // Vous pouvez manipuler la réponse ici si nécessaire
-//         console.log('Response from server:', response.data);
-
-//         return response.data; // Retourne éventuellement des données de réponse si besoin
-//       } catch (error) {
-//         console.error('Error creating user:', error);
-//         throw new Error('Failed to create user'); // Lancez une erreur pour gérer les erreurs
-//       }
-//     },
-//     onMutate: (newUserInfo) => {
-//       // Optimistic update sur le côté client
-//       queryClient.setQueryData(['users'], (prevUsers) => [
-//         ...prevUsers,
-//         {
-//           ...newUserInfo,
-//           id: (Math.random() + 1).toString(36).substring(7),
-//         },
-//       ]);
-//     },
-//     // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), // Refetch des utilisateurs après la mutation, désactivé pour la démo
-//   });
-// }
-
-
 // Mettez à jour la fonction useCreateUser
 function useCreateUser() {
   const queryClient = useQueryClient();
+  const {showNotification} = useNotification()
 
   return useMutation({
     mutationFn: async (newUserInfo) => {
@@ -466,44 +376,13 @@ function useCreateUser() {
     },
     onSuccess: (createdPatient) => {
       // Mettez à jour les données dans le queryClient avec le nouveau patient créé
+      showNotification('Opération réussi', 'success')
       queryClient.setQueryData(['users'], (prevUsers) => [...prevUsers, createdPatient]);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), // Refetch des utilisateurs après la mutation, désactivé pour la démo
+    
   });
 }
 
-
-
-//READ hook (get users from api)
-// function useGetUsers() {
-
-//   const response =  axios.get(wServer.GET.PATIENT.ALL);
-  
-//   console.log(response);
-//   return {data:response}
-//   return {data: fakeData}
-
-//   // return useQuery({
-//   //   queryKey: ['users'],
-//   //   queryFn: async () => {
-//   //     //send api request here
-//   //     await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-//   //     return Promise.resolve(fakeData);
-//   //   },
-//   //   refetchOnWindowFocus: false,
-//   // });
-// }
-
-// async function useGetUsers() {
-//   try {
-//     const response = await axios.get(wServer.GET.PATIENT.ALL);
-//     console.log(response.data);
-//     return { data: response.data }; // Retourne les données récupérées depuis l'API
-//   } catch (error) {
-//     console.error('Error fetching users:', error);
-//     throw error; // Propage l'erreur pour que les gestionnaires puissent la gérer
-//   }
-// }
 
 function useGetUsers() {
   const getUsers = async () => {
@@ -551,41 +430,6 @@ function formatDate(dateString) {
   return `${year}-${month}-${day}`;
 }
 
-
-// //UPDATE hook (put user in api)
-// function useUpdateUser() {
-//   const queryClient = useQueryClient();
-//   const setUpdate =  async (patient) => {
-//     return axios.put(wServer.UPDATE.PATIENT.UPDATE_BY_ID(patient.id), patient)
-//       .then(response => {
-//         return response.data; // Si vous souhaitez retourner des données spécifiques
-//       })
-//       .catch(error => {
-//         console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
-//         throw error; // Propage l'erreur pour que les gestionnaires de promesses puissent la gérer
-//       });
-//   }
-
-//   return {mutateAsync:setUpdate,isPending: false}
-//   // useMutation({
-//   //   mutationFn: async (user) => {
-//   //     //send api update request here
-//   //     await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-//   //     return Promise.resolve();
-//   //   },
-//   //   //client side optimistic update
-//   //   onMutate: (newUserInfo) => {
-//   //     queryClient.setQueryData(['users'], (prevUsers) =>
-//   //       prevUsers?.map((prevUser) =>
-//   //         prevUser.id === newUserInfo.id ? newUserInfo : prevUser,
-//   //       ),
-//   //     );
-//   //   },
-//   //   // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-//   // });
-// }
-
-
 function useUpdateUser() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -629,50 +473,8 @@ function useDeleteUser() {
   //return {mutateAsync:setDelete,isPending: false}
   console.log('use delete user');
   return ""
-  // useMutation({
-  //   mutationFn: async (userId) => {
-  //     //send api update request here
-  //     await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-  //     return Promise.resolve();
-  //   },
-  //   //client side optimistic update
-  //   onMutate: (userId) => {
-  //     queryClient.setQueryData(['users'], (prevUsers) =>
-  //       prevUsers?.filter((user) => user.id !== userId),
-  //     );
-  //   },
-  //   // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-  // });
+  
 }
-
-// import axios from 'axios'; // Assurez-vous que Axios est importé correctement
-
-// // Fonction personnalisée pour supprimer un utilisateur
-// function useDeleteUser() {
-//   const queryClient = useQueryClient();
-
-//   return useMutation({
-//     mutationFn: async (userId) => {
-//       try {
-//         // Envoyer une requête DELETE à l'API pour supprimer l'utilisateur avec userId
-//         await axios.delete(wServer.DELETE.PATIENT.DELETE_BY_ID);
-
-//         return userId; // Retourne l'ID de l'utilisateur supprimé
-//       } catch (error) {
-//         console.error('Error deleting user:', error);
-//         throw new Error('Failed to delete user'); // Gérer les erreurs
-//       }
-//     },
-//     onSuccess: (deletedUserId) => {
-//       // Mettez à jour les données dans le queryClient en supprimant l'utilisateur de la liste
-//       queryClient.setQueryData(['users'], (prevUsers) =>
-//         prevUsers.filter((user) => user.id !== deletedUserId)
-//       );
-//     },
-//     // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), // Refetch des utilisateurs après la mutation, désactivé pour la démo
-//   });
-// }
-
 
 const queryClient = new QueryClient();
 
@@ -684,49 +486,7 @@ export const TablePatientInfirmierTraite = () => (
 
 );
 
-// export default ExampleWithProviders;
-
 const validateRequired = (value) => !!value.length;
-const validateEmail = (email) =>
-  !!email.length &&
-  email
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-    );
-
-
-
-// function isValidDate(birthDate) {
-//   // Vérifier si la chaîne de caractères est dans le bon format
-//   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-//   if (!dateRegex.test(birthDate)) {
-//     return false;
-//   }
-
-//   // Extraire les composants de la date
-//   const [year, month, day] = birthDate.split('-');
-
-//   // Vérifier la validité de chaque composant
-//   const yearNum = parseInt(year, 10);
-//   const monthNum = parseInt(month, 10);
-//   const dayNum = parseInt(day, 10);
-
-//   if (
-//     isNaN(yearNum) ||
-//     isNaN(monthNum) ||
-//     isNaN(dayNum) ||
-//     yearNum < 1 ||
-//     monthNum < 1 ||
-//     monthNum > 12 ||
-//     dayNum < 1 ||
-//     dayNum > new Date(yearNum, monthNum, 0).getDate()
-//   ) {
-//     return false;
-//   }
-
-//   return true;
-// }
 
 const isValidDate = (dateString) =>
     !!dateString.length &&

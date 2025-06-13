@@ -1,32 +1,13 @@
 // --- START OF FILE PrescribeMedicationModal.js ---
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  IconButton,
-  Box,
-  Typography,
-  CircularProgress,
-  Grid,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  Divider,
-  Autocomplete, // Pour la recherche de médicaments
-  Tooltip
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, IconButton, Box, Typography, CircularProgress,
+  Grid, Paper, List, ListItem, ListItemText, Divider, Autocomplete } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
-import { wServer } from '../../Data/Consts'; // Ajustez le chemin si nécessaire
-import { debounce } from 'lodash'; // Pour la recherche de médicaments
+import { wServer } from '../../Data/Consts'; 
+import { debounce } from 'lodash'; 
 
 // Hook pour la recherche de médicaments disponibles
 const useSearchMedicaments = () => {
@@ -61,10 +42,12 @@ const useCreerOrdonnance = () => {
         console.log('Ordonnance créée avec succès:', data.ordonnance);
         // Afficher un toast de succès
       },
+      /*
       onError: (error) => {
         console.error('Erreur lors de la création de l\'ordonnance:', error);
         // Afficher un toast d'erreur
       },
+      */
     }
   );
 };
@@ -178,12 +161,7 @@ const PrescribeMedicationModal = ({ open, onClose, consultationData, medecinId }
         console.error("Données de consultation invalides pour la prescription de médicaments.");
         alert("Erreur: Impossible de récupérer les informations de la consultation.");
         return;
-    }
-     if (!medecinId) {
-        console.error("ID du médecin manquant.");
-        alert("Erreur: ID du médecin non disponible.");
-        return;
-    }
+    } 
 
     const ordonnancePayload = {
       matriculePatient: consultationData.matricule,
@@ -390,4 +368,3 @@ const PrescribeMedicationModal = ({ open, onClose, consultationData, medecinId }
 };
 
 export default PrescribeMedicationModal;
-// --- END OF FILE PrescribeMedicationModal.js ---

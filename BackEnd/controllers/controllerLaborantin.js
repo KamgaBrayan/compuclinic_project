@@ -1,5 +1,5 @@
 const { TypeExamen, PrescriptionExamen, ResultatExamen, ParametreExamen } = require('../models/laboratoire');
-const { patient, personne, employe } = require('../models/personne');
+const personne = require('../models/personne');
 const { consultation } = require('../models/consultation');
 const { Op } = require('sequelize');
 const database = require('../database');
@@ -223,42 +223,134 @@ const deleteParametreExamen = async (req, res) => {
 };
 
 // Gestion des prescriptions d'examens
+/*
 const getPrescriptionsEnAttente = async (req, res) => {
     try {
-        const { statut = 'paye', urgence, categorie } = req.query;
+        let statutsDemandés = req.query.statut || 'prescrit';
+        if (!Array.isArray(statutsDemandés)) {
+            statutsDemandés = [statutsDemandés];
+        }
+        console.log("Laborantin Backend - getPrescriptionsEnAttente - Statuts demandés:", statutsDemandés);
+
+        const { urgence, categorie } = req.query;
         
         let whereClause = {};
-        if (statut) whereClause.statut = statut;
+        if (statutsDemandés.length > 0) {
+            whereClause.statut = { [Op.in]: statutsDemandés };
+        }
         if (urgence) whereClause.urgence = urgence;
         
-        let includeClause = [
-            {
-                model: TypeExamen,
-                include: [ParametreExamen],
-                where: categorie ? { categorie } : {}
-            }
-        ];
+        let includeTypeExamenClause = {
+            model: TypeExamen,
+            include: [ParametreExamen]
+        };
+        if (categorie) {
+            includeTypeExamenClause.where = { categorie };
+        }
         
         const prescriptions = await PrescriptionExamen.findAll({
             where: whereClause,
-            include: includeClause,
+            include: [
+                includeTypeExamenClause,
+                {
+                    // Utiliser les noms importés (patient et personne, ou PatientModel et PersonneModel si tu as utilisé des alias)
+                    model: personne.patient,   // << CORRIGÉ
+                    required: false,
+                    include: [
+                        personne.personne  // << CORRIGÉ
+                    ]
+                }
+                // Tu pourrais aussi inclure les infos du médecin prescripteur si 'employe' est importé
+                // et que l'association est définie avec un alias (ex: 'medecinPrescripteur')
+                // { model: employe, as: 'medecinPrescripteur', include: [personne] }
+            ],
             order: [['urgence', 'DESC'], ['datePrescription', 'ASC']]
         });
+        console.log("Laborantin Backend - Prescriptions trouvées:", prescriptions.length);
 
-        // Enrichir avec les informations du patient
-        const prescriptionsEnrichies = await Promise.all(prescriptions.map(async (prescription) => {
-            const infoPatient = await getPatientInfo(prescription.matriculePatient);
+        const prescriptionsMappees = prescriptions.map(p => {
+            const presJson = p.toJSON();
+            // La structure patientInfo est importante pour le frontend TablePrescriptionsLab.js
             return {
-                ...prescription.toJSON(),
-                patientInfo: infoPatient
+                ...presJson, // Contient déjà TypeExamen, patient (avec personne nichée)
+                patientInfo: { 
+                    matricule: presJson.patient?.matricule,
+                    nom: presJson.patient?.personne?.lastName,
+                    prenom: presJson.patient?.personne?.firstName,
+                    sexe: presJson.patient?.personne?.sex,
+                    dateNaissance: presJson.patient?.personne?.birthDate,
+                }
             };
-        }));
+        });
 
-        res.status(200).json({ prescriptions: prescriptionsEnrichies });
+        res.status(200).json({ prescriptions: prescriptionsMappees });
     } catch (error) {
-        console.error('Erreur lors de la récupération des prescriptions:', error);
+        console.error('Laborantin Backend - Erreur getPrescriptionsEnAttente:', error);
         res.status(500).json({ 
             message: 'Erreur lors de la récupération des prescriptions', 
+            error: error.message 
+        });
+    }
+};
+*/
+
+const getPrescriptionsEnAttente = async (req, res) => {
+    console.log("Laborantin Backend - getPrescriptionsEnAttente - Récupération de TOUTES les prescriptions");
+    try {
+        // On ignore req.query.statut, req.query.urgence, req.query.categorie pour cette version de test
+
+        const prescriptions = await PrescriptionExamen.findAll({
+            // PAS DE CLAUSE 'where' POUR LE STATUT
+            include: [
+                {
+                    model: TypeExamen, // Inclure les détails du type d'examen
+                    include: [ParametreExamen] // Et les paramètres de ce type d'examen
+                },
+                {
+                    model: personne.patient,   // Inclure le modèle patient
+                    required: false,  // Mettre à false pour s'assurer de récupérer la prescription même si le patient a un souci (pour débogage)
+                                      // Idéalement, required: true est mieux si les données sont propres.
+                    include: [
+                        { model: personne.personne } // Inclure le modèle personne lié au patient
+                    ]
+                },
+                // Optionnel : Inclure le médecin prescripteur si l'association est définie
+                // {
+                //     model: employe, // Supposant que 'employe' est le modèle pour les médecins
+                //     as: 'medecin', // 'medecin' doit être l'alias défini dans PrescriptionExamen.belongsTo(employe, { as: 'medecin', ...})
+                //     include: [personne] // Pour avoir nom/prénom du médecin
+                // }
+            ],
+            order: [['datePrescription', 'DESC']] // Trier par date de prescription la plus récente
+        });
+
+        console.log(`Laborantin Backend - Nombre total de prescriptions trouvées (sans filtre de statut): ${prescriptions.length}`);
+        if (prescriptions.length > 0) {
+            console.log("Laborantin Backend - Détail première prescription (brute):", JSON.stringify(prescriptions[0], null, 2));
+        }
+
+        // Mappage pour structurer 'patientInfo' comme le frontend l'attend
+        const prescriptionsMappees = prescriptions.map(p => {
+            const presJson = p.toJSON(); // Convertit l'instance Sequelize en objet simple
+            return {
+                ...presJson, // Toutes les propriétés de la prescription et ses inclusions directes (TypeExamen)
+                patientInfo: presJson.patient ? { // Si l'inclusion du patient a fonctionné
+                    matricule: presJson.patient.matricule,
+                    nom: presJson.patient.personne?.lastName || 'N/A', // Utiliser optional chaining
+                    prenom: presJson.patient.personne?.firstName || 'N/A',
+                    sexe: presJson.patient.personne?.sex,
+                    dateNaissance: presJson.patient.personne?.birthDate,
+                } : null, // Si le patient n'a pas été trouvé (à cause de required: false et d'un problème de données)
+                // Le champ TypeExamen sera déjà niché correctement par Sequelize : presJson.TypeExamen
+            };
+        });
+
+        res.status(200).json({ prescriptions: prescriptionsMappees });
+
+    } catch (error) {
+        console.error('Laborantin Backend - Erreur dans getPrescriptionsEnAttente (toutes):', error);
+        res.status(500).json({ 
+            message: 'Erreur lors de la récupération de toutes les prescriptions', 
             error: error.message 
         });
     }
@@ -295,6 +387,7 @@ const commencerExamen = async (req, res) => {
         });
     }
 };
+
 
 const saisirResultats = async (req, res) => {
     try {
@@ -451,9 +544,9 @@ const getResultatById = async (req, res) => {
 // Fonction utilitaire pour récupérer les infos patient
 const getPatientInfo = async (matricule) => {
     try {
-        const patientRecord = await patient.findOne({
+        const patientRecord = await personne.patient.findOne({
             where: { matricule },
-            include: [personne]
+            include: [personne.personne]
         });
 
         if (patientRecord && patientRecord.personne) {

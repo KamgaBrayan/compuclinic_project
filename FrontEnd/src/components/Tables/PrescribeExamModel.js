@@ -1,29 +1,13 @@
 // --- START OF FILE PrescribeExamModal.js ---
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  IconButton,
-  Box,
-  Typography,
-  CircularProgress,
-  Grid,
-  Paper,
-  Tooltip
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Select, MenuItem, FormControl,
+  InputLabel, IconButton, Box, Typography, CircularProgress, Grid, Paper, Tooltip } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
-import { wServer } from '../../Data/Consts'; // Ajustez le chemin si nécessaire
+import { wServer } from '../../Data/Consts'; 
+import { useNotification } from '../../reducers/NotificationContext';
 
 // Hook pour récupérer les types d'examens disponibles
 const useGetTypesExamensDisponibles = () => {
@@ -39,17 +23,24 @@ const useGetTypesExamensDisponibles = () => {
 // Hook pour la mutation de prescription d'examen
 const usePrescrireExamen = () => {
   const queryClient = useQueryClient();
+  const { showNotification } = useNotification();
+
   return useMutation(
     async (prescriptionData) => {
+      console.log("Appel API POST vers:", wServer.CREATE.MEDECIN.PRESCRIRE_EXAMEN, "avec data:", prescriptionData); 
       const { data } = await axios.post(wServer.CREATE.MEDECIN.PRESCRIRE_EXAMEN, prescriptionData);
       return data;
     },
     {
-      onSuccess: (data) => {
-        // Optionnel: Invalider des requêtes pour rafraîchir des listes si nécessaire
-        // queryClient.invalidateQueries(['prescriptionsPatient', data.prescription.matriculePatient]);
-        console.log('Examen prescrit avec succès:', data.prescription);
-        // Afficher un toast de succès ici
+      onSuccess: (data) => { // 'data' est la réponse du serveur
+        console.log('Réponse du serveur (onSuccess usePrescrireExamen):', data); // << AJOUTER CE LOG
+        if (data && data.prescription) {
+            console.log('Examen prescrit avec succès (ID Prescription):', data.prescription.id);
+            console.log('Statut de la prescription créée:', data.prescription.statut); // Devrait être 'prescrit'
+            showNotification('Examen prescrit avec succès !', 'success');
+        } else {
+            console.warn("La réponse du serveur après prescription ne contient pas l'objet 'prescription' attendu.")
+        }
       },
       onError: (error) => {
         console.error('Erreur lors de la prescription de l\'examen:', error);
@@ -59,11 +50,12 @@ const usePrescrireExamen = () => {
   );
 };
 
-const PrescribeExamModal = ({ open, onClose, consultationData, medecinId }) => {
+const PrescribeExamModal = ({ open, onClose, consultationData /*, medecinId */}) => {
   const [prescriptions, setPrescriptions] = useState([
     { typeExamenId: '', indication: '', urgence: 'normale', prix: 0 }
   ]);
   const [errors, setErrors] = useState({});
+  const { showNotification } = useNotification();
 
   const { data: typesExamens = [], isLoading: isLoadingTypesExamens, isError: isErrorTypesExamens } = useGetTypesExamensDisponibles();
   const { mutate: prescrireExamen, isLoading: isPrescribing } = usePrescrireExamen();
@@ -131,43 +123,35 @@ const PrescribeExamModal = ({ open, onClose, consultationData, medecinId }) => {
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      // Afficher un toast d'erreur général si vous en avez un
-      alert("Veuillez corriger les erreurs dans le formulaire.");
+      showNotification("Veuillez remplir le formulaire entièrement.", 'warning');
       return;
     }
 
     if (!consultationData || !consultationData.id || !consultationData.matricule) {
         console.error("Données de consultation invalides pour la prescription d'examen.");
-        alert("Erreur: Impossible de récupérer les informations de la consultation.");
-        return;
-    }
-    if (!medecinId) { // Assurez-vous que medecinId est passé en prop ou récupéré autrement
-        console.error("ID du médecin manquant.");
-        alert("Erreur: ID du médecin non disponible.");
+        showNotification("Une erreur est survenue. Impossible de récupérer les informations de la consultation.", 'error');
         return;
     }
 
-
+    
     try {
       for (const prescription of prescriptions) {
         const prescriptionPayload = {
-          matriculePatient: consultationData.matricule, // Vient de la consultation
-          medecinId: medecinId, // Doit être l'ID de l'employé médecin connecté
-          consultationId: consultationData.id, // ID de la consultation en cours
+          matriculePatient: consultationData.matricule,
+          consultationId: consultationData.id,
           typeExamenId: prescription.typeExamenId,
           indication: prescription.indication,
           urgence: prescription.urgence,
-          // Le prix est déjà dans typeExamen et sera setté par le backend via `typeExamen.prix`
         };
-        await prescrireExamen(prescriptionPayload);
+        console.log("Payload envoyé pour prescrireExamen:", prescriptionPayload);
+        await prescrireExamen(prescriptionPayload); 
       }
-      // Afficher un toast de succès global
-      alert("Examens prescrits avec succès !");
-      queryClient.invalidateQueries(['prescriptionsExamenPatient', consultationData.matricule]); // Pour rafraîchir si une liste est affichée ailleurs
-      onClose(); // Fermer le modal après succès
+      showNotification("Examens prescrits avec succès !", 'success');
+      queryClient.invalidateQueries(['prescriptionsExamenPatient', consultationData.matricule]);
+      onClose();
     } catch (error) {
-      console.error("Erreur lors de la soumission des prescriptions d'examens:", error);
-      alert("Une erreur s'est produite lors de la prescription des examens.");
+      console.error("Erreur lors de la soumission des prescriptions d'examens (dans handleSubmit):", error);
+      showNotification("Une erreur s'est produite lors de la prescription des examens. Veuillez reéssayer", 'error');
     }
   };
 
@@ -300,4 +284,3 @@ const PrescribeExamModal = ({ open, onClose, consultationData, medecinId }) => {
 };
 
 export default PrescribeExamModal;
-// --- END OF FILE PrescribeExamModal.js ---

@@ -5,7 +5,6 @@ class BlogAdsCard extends React.Component {
   render() {
     const {
       HeaderText,
-      Details,
       RefLink,
       PostList,
       ImageList,

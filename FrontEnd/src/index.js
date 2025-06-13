@@ -12,6 +12,7 @@ import "../node_modules/bootstrap/scss/bootstrap.scss";
 import "./assets/assets/scss/main.scss";
 import "./assets/assets/scss/color_skins.scss";
 import "../node_modules/font-awesome/scss/font-awesome.scss";
+import { NotificationProvider } from "./reducers/NotificationContext";
 
 
 const store = createStore(reducers, applyMiddleware(thunk));
@@ -19,7 +20,9 @@ const store = createStore(reducers, applyMiddleware(thunk));
 ReactDOM.render(
   <Provider store={store}>
     <BrowserRouter>
-      <App />
+      <NotificationProvider>
+        <App />
+      </NotificationProvider>  
     </BrowserRouter>
   </Provider>,
   document.getElementById("root")

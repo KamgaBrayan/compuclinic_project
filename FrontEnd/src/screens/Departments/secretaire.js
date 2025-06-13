@@ -1,21 +1,13 @@
 import React from "react";
 import { connect } from "react-redux";
 import PageHeader from "../../components/PageHeader";
-import ajouterPatient from "./ajouterPatient";
-import { InternedPatientTableData, PatientTableData, PresentPatientTableData } from "../../dataComponents/SecretaryDataComponent";
 import { wapp } from "../../Data/Consts";
-import { CardModalHeader, ValidationModal } from "../../dataComponents/utils";
+import { ValidationModal } from "../../dataComponents/utils";
 import { CreatePatientFormModal, EditPatientFormModal } from "../Patients/CreatePatientModal";
 import { CreatePatientFormModalSecretaire, EditPatientFormModalSecretaire } from "../Patients/CreatePatientModalSecretaire";
 import { TablePatientSecretaire } from "../Patients/TablePatientSecretaire";
 import { TableConsultationSecretaire } from "../Patients/TableConsultationSecretaire";
-// import BasicElementExample from "../../components/Forms/BasicElementExample";
-// import DifferentSizing from "../../components/Forms/DifferentSizing";
-// import InputwithCheckbox from "../../components/Forms/InputwithCheckbox";
-// import MultipleAddons from "../../components/Forms/MultipleAddons";
-// import CustomCheckboxes from "../../components/Forms/CustomCheckboxes";
-// import InputButtonAddons from "../../components/Forms/InputButtonAddons";
-// import CustomForms from "../../components/Forms/CustomForms";
+
 
 class Secretaire extends React.Component {
   componentDidMount() {
@@ -100,19 +92,7 @@ class Secretaire extends React.Component {
                     </div>
                   </div>
             </div>
-            {/*<div className="row clearfix">
-              <div className="col-lg-6 col-md-12">
-                
-                <DifferentSizing />
-                <InputwithCheckbox />
-                <MultipleAddons />
-                <CustomCheckboxes />
-              </div>
-              <div className="col-lg-6 col-md-12">
-                <InputButtonAddons />
-                <CustomForms />
-              </div>
-            </div>*/}
+            
           </div>
         </div>
       </div>

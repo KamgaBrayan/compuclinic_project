@@ -31,7 +31,7 @@ const useUpdateTypeExamen = () => {
         async (examenData) => {
             // examenData devrait contenir l'id et le champ à mettre à jour, ex: { id: 'uuid', disponible: true }
             const { id, ...dataToUpdate } = examenData;
-            const { data } = await axios.put(wServer.PUT.LABORANTIN.TYPE_EXAMEN(id), dataToUpdate);
+            const { data } = await axios.put(wServer.ACTION_POST.PUT.LABORANTIN.TYPE_EXAMEN(id), dataToUpdate);
             return data;
         },
         {
@@ -58,7 +58,7 @@ const useDeleteTypeExamen = () => {
     const queryClient = useQueryClient();
     return useMutation(
         async (examenId) => {
-            await axios.delete(wServer.DELETE.LABORANTIN.TYPE_EXAMEN(examenId));
+            await axios.delete(wServer.ACTION_POST.DELETE.LABORANTIN.TYPE_EXAMEN(examenId));
             return examenId; // Retourner l'ID pour la mise à jour optimiste ou onSuccess
         },
         {
@@ -89,7 +89,7 @@ const TableTypesExamensLab = () => {
     const [selectedExamenForModal, setSelectedExamenForModal] = useState(null);
 
     // Simuler l'ID du laborantin connecté (à remplacer par une vraie logique d'auth)
-    const LABORANTIN_ID_CONNECTE = 1; // Exemple, DOIT ÊTRE DYNAMIQUE
+    // const LABORANTIN_ID_CONNECTE = 1; // Exemple, DOIT ÊTRE DYNAMIQUE
 
     const handleToggleDisponible = async (row) => {
         // ... (comme avant)

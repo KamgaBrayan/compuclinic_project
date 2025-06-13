@@ -14,7 +14,6 @@ import {
   InputLabel,
   FormHelperText,
   CircularProgress,
-  Box,
   Typography
 } from '@mui/material';
 import { useMutation, useQueryClient } from 'react-query';
@@ -50,7 +49,7 @@ const useUpdateTypeExamenModal = () => { // Renommé pour éviter conflit avec c
     return useMutation(
         async (examenData) => {
             const { id, ...dataToUpdate } = examenData;
-            const { data } = await axios.put(wServer.PUT.LABORANTIN.TYPE_EXAMEN(id), dataToUpdate);
+            const { data } = await axios.put(wServer.ACTION_POST.PUT.LABORANTIN.TYPE_EXAMEN(id), dataToUpdate);
             return data;
         },
         {
@@ -68,7 +67,7 @@ const useUpdateTypeExamenModal = () => { // Renommé pour éviter conflit avec c
     );
 };
 
-const TypeExamenFormModal = ({ open, onClose, examenToEdit, laborantinId }) => {
+const TypeExamenFormModal = ({ open, onClose, examenToEdit /*, laborantinId */ }) => {
     const [formData, setFormData] = useState({
         nom: '',
         code: '',
@@ -149,16 +148,9 @@ const TypeExamenFormModal = ({ open, onClose, examenToEdit, laborantinId }) => {
             ...formData,
             prix: parseFloat(formData.prix),
             dureeEstimee: parseInt(formData.dureeEstimee),
-            laborantinId: laborantinId // Assurez-vous que laborantinId est fourni
+            // laborantinId: laborantinId // Assurez-vous que laborantinId est fourni
         };
-        
-        if (!laborantinId && !isEditMode) { // En mode création, laborantinId est nécessaire
-            alert("Erreur : ID du laborantin responsable manquant pour la création.");
-            console.error("Erreur : ID du laborantin responsable manquant pour la création.");
-            return;
-        }
-
-
+    
         try {
             if (isEditMode) {
                 await updateTypeExamen({ id: examenToEdit.id, ...submissionData });

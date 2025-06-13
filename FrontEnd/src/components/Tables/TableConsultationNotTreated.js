@@ -239,30 +239,21 @@ const Table = ( { treated }) => {
       {
         accessorKey: 'diagnostique',
         header: 'Diagnostic du Médecin',
-        muiEditTextFieldProps: ({row}) => ({ // Pass row pour accéder aux valeurs originales
+        enableEditing: true,
+        muiEditTextFieldProps: {
           required: true,
           error: !!validationErrors?.diagnostique,
           helperText: validationErrors?.diagnostique,
           placeholder: 'Ex: Infection respiratoire aiguë...',
           multiline: true,
-          rows: 3, // Augmenter la taille pour une meilleure visibilité
-          defaultValue: row.original.diagnostique, // Pré-remplir avec la valeur existante
+          rows: 2,
           onFocus: () => setValidationErrors({
             ...validationErrors,
             diagnostique: undefined,
           }),
-        }),
+        },
       },
-      // Le champ 'prescription' textuel original est retiré au profit des boutons/modals dédiés.
-      // Si vous voulez le garder pour des notes générales, vous pouvez le laisser, mais il ne sera plus
-      // le lieu principal pour les prescriptions structurées.
-      // {
-      //   accessorKey: 'prescription',
-      //   header: 'Notes de Prescription Générales',
-      //   muiEditTextFieldProps: {
-      //     // ...props...
-      //   },
-      // },
+      
     ],
     [validationErrors],
   );
@@ -411,10 +402,16 @@ const Table = ( { treated }) => {
                 <Typography variant="h6" gutterBottom>Diagnostic du Médecin</Typography>
                 {/* Les champs éditables (diagnostique) seront rendus ici par internalEditComponents */}
                 {/* Filtrez internalEditComponents pour ne montrer que 'diagnostique' si nécessaire */}
-                {internalEditComponents.find(comp => comp.props.table.getColumn('diagnostique'))}
+                {internalEditComponents.filter(component => {
+                  // Chercher dans les props du composant
+                  const props = component.props;
+                  if (props && props.cell && props.cell.column) {
+                    return props.cell.column.id === 'diagnostique';
+                  }
+                  return false;
+                })}
 
-                 {/* Si vous gardez le champ prescription général */}
-                 {/* {internalEditComponents.find(comp => comp.props.table.getColumn('prescription'))} */}
+                 
             </Box>
 
             <Box sx={{ border: '1px solid #e0e0e0', p: 2, borderRadius: '4px' }}>
@@ -499,7 +496,7 @@ const Table = ( { treated }) => {
           open={isPrescribeMedicationModalOpen}
           onClose={() => setIsPrescribeMedicationModalOpen(false)}
           consultationData={currentConsultationData}
-          medecinId={"ID_DU_MEDECIN_CONNECTE"} // << REMPLACEZ CECI par la vraie valeur
+          // medecinId={"ID_DU_MEDECIN_CONNECTE"} // << REMPLACEZ CECI par la vraie valeur
         />
       )}
     </>
@@ -548,7 +545,7 @@ function useUpdateConsultation() {
       // 'consultation' ici devrait contenir { matricule, diagnostique, prescription (si gardée) }
       try {
         // Utilise la route PUT.MEDECIN.UPDATE_CONSULTATION de Consts.js
-        const response = await axios.put(wServer.PUT.MEDECIN.UPDATE_CONSULTATION_RESULT, consultation);
+        const response = await axios.put(wServer.ACTION_POST.PUT.MEDECIN.UPDATE_CONSULTATION_RESULT, consultation);
         return response.data;
       } catch (error) {
         console.error('Error updating consultation (diagnostic/prescription):', error);
@@ -572,7 +569,7 @@ function useChangeStateConsultation() {
     mutationFn: async ({ matricule, statut }) => {
       try {
         // Utilise la route PUT.MEDECIN.CHANGE_STATE de Consts.js
-        const response = await axios.put(wServer.PUT.MEDECIN.CHANGE_CONSULTATION_STATE, { matricule, statut });
+        const response = await axios.put(wServer.ACTION_POST.PUT.MEDECIN.CHANGE_CONSULTATION_STATE, { matricule, statut });
         return response.data;
       } catch (error) {
         console.error('Error updating consultation state:', error);

@@ -120,7 +120,7 @@ export const wServer = {
         },
         MEDECIN: {
             GEMINI: `${wServerRoot}/medecin/gemini`,
-    },
+        },
 
     PUT: { // Pour les mises à jour complètes de ressources existantes
         PHARMACY: {
@@ -148,28 +148,28 @@ export const wServer = {
         },
         PATIENT_UPDATE_BY_ID_V1 :`${wServerRoot}/secretaire/updatePatientById`, // Route existante pour maj patient
     },
-    // UPDATE : { // Cette section peut être fusionnée avec PUT ou PATCH si on suit les conventions HTTP
-    //     USER : `${wServerRoot}/auth/login/`, // Incorrect pour update
-    //     PATIENT : {
-    //         INTERN : (id="") => `${wServerRoot}/secretaire/patients/${id}/`,
-    //         ADD_EXIST : (id="") => `${wServerRoot}/secretaire/addExistingPatient/${id}/`,
-    //         UPDATE_BY_ID :`${wServerRoot}/secretaire/updatePatientById`, // Déjà dans PUT via PATIENT_UPDATE_BY_ID_V1
-    //         UPDATE_PARAMETERS :`${wServerRoot}/infirmiere/addPatientParameters`, // Déjà dans PUT.INFIRMIERE
-    //         EXTERN : (id="") => `${wServerRoot}/secretaire/patients/${id}/`,
-    //     },
-    //     UPDATECONSULTATION : `${wServerRoot}/medecin/updateResultConsultation/`, // Déjà dans PUT.MEDECIN
-    //     UPDATESTATECONSULTATION: `${wServerRoot}/medecin/changestate`, // Déjà dans PUT.MEDECIN
-    //     PHARMACY: {
-    //         DRUG: (id) => `${BASE_URL}/drugs/${id}` // Déjà dans PUT.PHARMACY
-    //     },
-    // },
+    UPDATE : { // Cette section peut être fusionnée avec PUT ou PATCH si on suit les conventions HTTP
+         USER : `${wServerRoot}/auth/login/`, // Incorrect pour update
+         PATIENT : {
+             INTERN : (id="") => `${wServerRoot}/secretaire/patients/${id}/`,
+             ADD_EXIST : (id="") => `${wServerRoot}/secretaire/addExistingPatient/${id}/`,
+             UPDATE_BY_ID :`${wServerRoot}/secretaire/updatePatientById`, // Déjà dans PUT via PATIENT_UPDATE_BY_ID_V1
+             UPDATE_PARAMETERS :`${wServerRoot}/infirmiere/addPatientParameters`, // Déjà dans PUT.INFIRMIERE
+             EXTERN : (id="") => `${wServerRoot}/secretaire/patients/${id}/`,
+         },
+         UPDATECONSULTATION : `${wServerRoot}/medecin/updateResultConsultation/`, // Déjà dans PUT.MEDECIN
+         UPDATESTATECONSULTATION: `${wServerRoot}/medecin/changestate`, // Déjà dans PUT.MEDECIN
+         PHARMACY: {
+             DRUG: (id) => `${BASE_URL}/drugs/${id}` // Déjà dans PUT.PHARMACY
+         },
+     },
     DELETE : {
         USER :  {
             // DELETE_BY_ID : (id="") => `${wServerRoot}/secretaire/deleteUserById/${id}/` // Route pour user non trouvée au backend
         },
         PATIENT : {
             // Ancienne route (si utilisée, ne prend pas d'ID dans l'URL)
-            DELETE_BY_ID_V1 : `${wServerRoot}/secretaire/deletePatientById`,
+            DELETE_BY_ID : `${wServerRoot}/secretaire/deletePatientById`,
             // Nouvelle route, avec matricule dans l'URL
             DELETE_BY_MATRICULE_V2 : (matricule) => `${wServerRoot}/secretaire/deletePatientById/${matricule}`
         },

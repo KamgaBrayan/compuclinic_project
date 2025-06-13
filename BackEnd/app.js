@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const database = require('./database');
 
 // Import des modèles pour s'assurer qu'ils sont initialisés
@@ -22,12 +23,20 @@ const app = express();
 app.use(express.json());
 
 // Configuration CORS
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  next();
-});
+app.use(cors({
+  origin: '*', // Pour le développement. En production, spécifie 'http://localhost:3000' ou ton domaine frontend.
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Inclure OPTIONS
+  allowedHeaders: [ // Liste des en-têtes que ton frontend peut envoyer
+    'Origin',
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization' // << IMPORTANT : Autoriser l'en-tête Authorization
+  ],
+  credentials: true // Si tu prévois d'utiliser des cookies ou des sessions basées sur les en-têtes d'autorisation plus tard
+}));
+
+app.use(express.json());
 
 // Configuration des routes
 app.use("/api/secretaire", routeSecretaire);

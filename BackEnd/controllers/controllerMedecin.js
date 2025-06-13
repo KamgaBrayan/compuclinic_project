@@ -1,9 +1,9 @@
-// BackEnd/controllers/controllerMedecin.js - Version étendue
 const consultation = require('../models/consultation');
 const personne = require('../models/personne');
 const { TypeExamen, PrescriptionExamen } = require('../models/laboratoire');
 const { PrescriptionMedicament, Ordonnance } = require('../models/prescription');
 const { Drug } = require('../models/pharmacy');
+
 
 const getPersonneById = async (id) => {
     try {
@@ -77,11 +77,7 @@ const getConsultationById = async (req, res) => {
     try {
         const { id } = req.params;
         const consultationRecord = await consultation.consultation.findByPk(id, {
-            // Inclure les associations nécessaires si besoin (patient, médecin, etc.)
-            // include: [
-            //     { model: personne.patient, include: [personne.personne] },
-            //     { model: personne.employe, include: [personne.personne] } 
-            // ]
+            
         });
 
         if (consultationRecord) {
@@ -93,7 +89,7 @@ const getConsultationById = async (req, res) => {
                     lastName: patientInfo.lastName,
                     firstName: patientInfo.firstName,
                     sex: patientInfo.sex,
-                    // ... autres champs de personne
+                    
                 } : null
             };
             res.status(200).json(enrichedConsultation);
@@ -192,55 +188,120 @@ const getTypesExamensDisponibles = async (req, res) => {
 };
 
 const prescrireExamen = async (req, res) => {
+    console.log("Backend - prescrireExamen - REÇU req.body:", req.body);
     try {
         const { 
             matriculePatient, 
-            medecinId, 
-            consultationId, 
+            medecinId,          // Reçu du frontend
+            consultationId,     // Reçu du frontend
             typeExamenId, 
             indication, 
             urgence = 'normale' 
         } = req.body;
 
-        // Vérifier que le type d'examen existe
+        // --- VALIDATION DES INPUTS ---
+        if (!matriculePatient) {
+            console.error("Backend - prescrireExamen - Erreur: matriculePatient est manquant.");
+            return res.status(400).json({ message: 'Le matricule du patient est requis.' });
+        }
+        if (!typeExamenId) {
+            console.error("Backend - prescrireExamen - Erreur: typeExamenId est manquant.");
+            return res.status(400).json({ message: 'Le type d\'examen est requis.' });
+        }
+        
+        if (!medecinId) {
+             console.warn("Backend - prescrireExamen - AVERTISSEMENT: medecinId est manquant/null. Si obligatoire, cela peut causer un problème d'intégrité ou être rejeté par la DB si la colonne n'est pas nullable.");
+            // Si la colonne medecinId dans PrescriptionExamen a allowNull:false, ceci causera une erreur Sequelize plus tard.
+        }
+         if (!consultationId) {
+             console.warn("Backend - prescrireExamen - AVERTISSEMENT: consultationId est manquant/null. Si obligatoire, cela peut causer un problème d'intégrité ou être rejeté par la DB si la colonne n'est pas nullable.");
+        }
+
+
+        // --- RECHERCHE DU PATIENT ---
+        console.log(`Backend - prescrireExamen - Recherche du patient avec matricule: '${matriculePatient}'`);
+        const patientRecord = await personne.patient.findOne({ 
+            where: { matricule: matriculePatient }
+            // attributes: ['id', 'matricule'] // Optionnel: ne récupérer que les champs nécessaires
+        });
+
+        if (!patientRecord) {
+            console.error(`Backend - prescrireExamen - Patient non trouvé pour matricule: '${matriculePatient}'`);
+            return res.status(404).json({ message: `Patient non trouvé avec le matricule '${matriculePatient}'.` });
+        }
+        console.log("Backend - prescrireExamen - Patient trouvé (objet complet):", JSON.stringify(patientRecord, null, 2));
+        console.log("Backend - prescrireExamen - ID du patient à utiliser (patientRecord.id):", patientRecord.id); // CET ID DOIT ÊTRE VALIDE (pas null/undefined)
+
+
+        // --- RECHERCHE DU TYPE D'EXAMEN ---
         const typeExamen = await TypeExamen.findByPk(typeExamenId);
         if (!typeExamen) {
-            return res.status(404).json({ message: 'Type d\'examen non trouvé' });
+            console.error(`Backend - prescrireExamen - TypeExamen non trouvé pour ID: '${typeExamenId}'`);
+            return res.status(404).json({ message: 'Type d\'examen non trouvé.' });
+        }
+        console.log("Backend - prescrireExamen - TypeExamen trouvé:", typeExamen.nom);
+
+
+        // --- VÉRIFICATION OPTIONNELLE MEDECINID ET CONSULTATIONID (EXISTENCE) ---
+        if (medecinId) {
+            const medecinExiste = await personne.employe.findByPk(medecinId);
+            if (!medecinExiste) console.warn("Backend - prescrireExamen - medecinId fourni mais l'employé n'est pas trouvé en base:", medecinId);
+        }
+        if (consultationId) {
+            const consultationExiste = await consultation.consultation.findByPk(consultationId);
+            if (!consultationExiste) console.warn("Backend - prescrireExamen - consultationId fourni mais la consultation n'est pas trouvée en base:", consultationId);
         }
 
-        // Vérifier que le patient existe
-        const patientExiste = await personne.patient.findOne({
-            where: { matricule: matriculePatient }
-        });
-        if (!patientExiste) {
-            return res.status(404).json({ message: 'Patient non trouvé' });
-        }
 
+        // --- CRÉATION DE LA PRESCRIPTION ---
+        console.log("Backend - prescrireExamen - Tentative de création de PrescriptionExamen avec patientId:", patientRecord.id, "medecinId:", medecinId, "consultationId:", consultationId);
         const prescription = await PrescriptionExamen.create({
-            matriculePatient,
-            medecinId,
-            consultationId,
+            patientId: patientRecord.id,      // Doit être un ID valide de la table 'patients'
+            medecinId: medecinId || null,     // Sera null si medecinId est falsy (undefined, null, '')
+            consultationId: consultationId || null, // Sera null si consultationId est falsy
             typeExamenId,
             indication,
             urgence,
             prixTotal: typeExamen.prix,
             statut: 'prescrit'
         });
+        console.log("Backend - prescrireExamen - Prescription créée avec succès (ID):", prescription.id, "avec patientId:", prescription.patientId);
 
-        // Récupérer la prescription avec les détails
+
+        // --- RÉCUPÉRATION DE LA PRESCRIPTION COMPLÈTE POUR LA RÉPONSE ---
         const prescriptionComplete = await PrescriptionExamen.findByPk(prescription.id, {
-            include: [TypeExamen]
+            include: [
+                TypeExamen, 
+                { 
+                    model: personne.patient, 
+                    attributes: ['id', 'matricule'], // Sélectionner les attributs nécessaires
+                    include: [{
+                        model: personne.personne,
+                        attributes: ['firstName', 'lastName', 'sex', 'birthDate'] // Sélectionner les attributs nécessaires
+                    }]
+                }
+                // Tu pourrais aussi inclure le médecin si tu as la relation et medecinId
+                // { model: EmployeModel, as: 'medecinPrescripteur' } // (si l'alias est 'medecinPrescripteur')
+            ]
         });
 
         res.status(201).json({ 
             message: 'Examen prescrit avec succès', 
             prescription: prescriptionComplete 
         });
+
     } catch (error) {
-        console.error('Erreur lors de la prescription d\'examen:', error);
+        console.error('Backend - Erreur DÉTAILLÉE dans prescrireExamen:', error);
+        if (error.name === 'SequelizeValidationError') {
+            return res.status(400).json({ 
+                message: 'Erreur de validation des données.', 
+                errors: error.errors.map(e => ({ field: e.path, message: e.message }))
+            });
+        }
+        // Pour toute autre erreur, c'est une erreur serveur
         res.status(500).json({ 
-            message: 'Erreur lors de la prescription d\'examen', 
-            error: error.message 
+            message: 'Erreur serveur interne lors de la prescription d\'examen.', 
+            errorDetails: error.message // Fournir un peu plus de détails peut aider au débogage frontend
         });
     }
 };
@@ -295,6 +356,7 @@ const getMedicamentsDisponibles = async (req, res) => {
 };
 
 const creerOrdonnance = async (req, res) => {
+    console.log("Backend - creerOrdonnance - REÇU req.body:", req.body);
     try {
         const { 
             matriculePatient, 
@@ -304,42 +366,82 @@ const creerOrdonnance = async (req, res) => {
             instructions 
         } = req.body;
 
+        // --- VALIDATION DES INPUTS ---
+        if (!matriculePatient) {
+            console.error("Backend - creerOrdonnance - Erreur: matriculePatient est manquant.");
+            return res.status(400).json({ message: 'Le matricule du patient est requis.' });
+        }
+        if (!medicaments || medicaments.length === 0) {
+            console.error("Backend - creerOrdonnance - Erreur: La liste des médicaments est vide.");
+            return res.status(400).json({ message: 'Au moins un médicament doit être prescrit.' });
+        }
+        // Ajouter des validations pour medecinId, consultationId si nécessaire
+
+        // --- RECHERCHE DU PATIENT ---
+        console.log(`Backend - creerOrdonnance - Recherche du patient avec matricule: '${matriculePatient}'`);
+        // Utilise le nom de variable correct pour ton modèle Patient (PatientModel ou patient)
+        const patientRecord = await personne.patient.findOne({ // Ou PatientModel.findOne
+            where: { matricule: matriculePatient }
+        });
+
+        if (!patientRecord) {
+            console.error(`Backend - creerOrdonnance - Patient non trouvé pour matricule: '${matriculePatient}'`);
+            return res.status(404).json({ message: `Patient non trouvé avec le matricule '${matriculePatient}'.` });
+        }
+        console.log("Backend - creerOrdonnance - Patient trouvé (ID):", patientRecord.id);
+
+
         // Générer un numéro d'ordonnance unique
-        const numeroOrdonnance = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const numeroOrdonnance = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
         // Créer l'ordonnance
+        console.log("Backend - creerOrdonnance - Création Ordonnance avec patientId:", patientRecord.id);
         const ordonnance = await Ordonnance.create({
             numeroOrdonnance,
-            matriculePatient,
-            medecinId,
-            consultationId,
+            patientId: patientRecord.id, // << UTILISER L'ID DU PATIENT TROUVÉ
+            medecinId: medecinId || null,
+            consultationId: consultationId || null,
             instructions,
             dateExpiration: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
         });
+        console.log("Backend - creerOrdonnance - Ordonnance créée (ID):", ordonnance.id);
 
-        // Créer les prescriptions de médicaments
-        const prescriptionsMedicaments = await Promise.all(
-            medicaments.map(async (med) => {
-                return await PrescriptionMedicament.create({
-                    ordonnanceId: ordonnance.id,
-                    matriculePatient,
-                    medecinId,
-                    consultationId,
-                    medicamentId: med.medicamentId,
-                    posologie: med.posologie,
-                    quantitePrescrite: med.quantite,
-                    dureeTraitement: med.dureeTraitement,
-                    instructions: med.instructions
-                });
-            })
-        );
 
-        // Récupérer l'ordonnance complète
+        // Créer les prescriptions de médicaments associées
+        const prescriptionsMedicamentsPromises = medicaments.map(async (med) => {
+            if (!med.medicamentId) {
+                console.error("Backend - creerOrdonnance - medicamentId manquant pour un médicament:", med);
+                // Peut-être lancer une erreur ou ignorer ce médicament
+                return null; // Ou gérer autrement
+            }
+            return PrescriptionMedicament.create({
+                ordonnanceId: ordonnance.id,
+                patientId: patientRecord.id, // << UTILISER L'ID DU PATIENT TROUVÉ
+                medecinId: medecinId || null,
+                consultationId: consultationId || null,
+                medicamentId: med.medicamentId, // Vient du payload frontend
+                posologie: med.posologie,
+                quantitePrescrite: med.quantite, // Assure-toi que 'quantite' est bien le nom de la prop dans le payload 'med'
+                dureeTraitement: med.dureeTraitement,
+                instructions: med.instructions
+            });
+        });
+        
+        const prescriptionsMedicaments = (await Promise.all(prescriptionsMedicamentsPromises)).filter(p => p !== null); // Filtrer les nulls si on a ignoré des médocs
+        console.log(`Backend - creerOrdonnance - ${prescriptionsMedicaments.length} PrescriptionMedicament créées.`);
+
+
+        // Récupérer l'ordonnance complète pour la réponse
         const ordonnanceComplete = await Ordonnance.findByPk(ordonnance.id, {
             include: [
                 {
                     model: PrescriptionMedicament,
-                    include: [Drug]
+                    include: [Drug] // Assure-toi que Drug est bien le modèle Sequelize
+                },
+                // Tu pourrais aussi vouloir inclure le patient ici pour la réponse
+                {
+                    model: personne.patient, // Ou PatientModel
+                    include: [personne.personne] // Ou PersonneModel
                 }
             ]
         });
@@ -348,11 +450,18 @@ const creerOrdonnance = async (req, res) => {
             message: 'Ordonnance créée avec succès', 
             ordonnance: ordonnanceComplete 
         });
+
     } catch (error) {
-        console.error('Erreur lors de la création de l\'ordonnance:', error);
+        console.error('Backend - Erreur DÉTAILLÉE dans creerOrdonnance:', error);
+        if (error.name === 'SequelizeValidationError') {
+            return res.status(400).json({ 
+                message: 'Erreur de validation des données pour l\'ordonnance.', 
+                errors: error.errors.map(e => ({ field: e.path, message: e.message }))
+            });
+        }
         res.status(500).json({ 
-            message: 'Erreur lors de la création de l\'ordonnance', 
-            error: error.message 
+            message: 'Erreur serveur interne lors de la création de l\'ordonnance.', 
+            errorDetails: error.message 
         });
     }
 };

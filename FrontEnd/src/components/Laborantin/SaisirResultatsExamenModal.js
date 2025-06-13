@@ -18,6 +18,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
 import { wServer } from '../../Data/Consts'; // Ajustez le chemin
+import { useNotification } from '../../reducers/NotificationContext';
 
 // Hook pour récupérer les paramètres d'un type d'examen
 const useGetParametresExamen = (typeExamenId, enabled) => {
@@ -121,6 +122,7 @@ const SaisirResultatsExamenModal = ({ open, onClose, prescriptionData, laboranti
   // const [valeursAnormales, setValeursAnormales] = useState(''); // Peut être un JSON ou un texte simple
   const [commentaires, setCommentaires] = useState('');
   const [formErrors, setFormErrors] = useState({});
+  const {showNotification} = useNotification();
 
   const typeExamenId = prescriptionData?.typeExamenId || prescriptionData?.TypeExamen?.id;
 
@@ -178,49 +180,47 @@ const SaisirResultatsExamenModal = ({ open, onClose, prescriptionData, laboranti
   };
 
   const handleSave = async (andValidate = false) => {
+    console.log("HandleSave appelé avec:", { andValidate, prescriptionData, laborantinId });
+    
     if (!validateSaisie()) {
-        alert("Veuillez corriger les erreurs du formulaire.");
+        showNotification('Please, correct the errors in the form.', 'warning');
         return;
     }
     
-    if (!prescriptionData?.id || !laborantinId) {
-        alert("Données de prescription ou ID laborantin manquantes.");
+    // Rendre laborantinId optionnel pour les tests
+    if (!prescriptionData?.id) {
+        showNotification('Missing Prescription Data', 'warning');
         return;
     }
 
+    if (!laborantinId) {
+        console.warn("laborantinId manquant, utilisation d'une valeur par défaut pour les tests");
+    }
+
     const resultatPayload = {
-        // laborantinId: laborantinId, // Sera ajouté par le hook useSaisirOuMajResultatsExamen
-        resultats: resultatsSaisis, // Ceci est le JSON des {paramId: valeur}
+        resultats: resultatsSaisis,
         interpretation: interpretation,
-        // valeursAnormales: valeursAnormales, // À gérer si besoin
         commentaires: commentaires,
     };
 
     try {
-        // const resultatCreeOuMaj = await saisirOuMajResultats({ 
-        //     prescriptionId: prescriptionData.id, 
-        //     resultatData: resultatPayload,
-        //     isUpdate: isEditMode,
-        //     resultatExistantId: resultatExistant?.id 
-        // });
         const resultatCreeOuMaj = await saisirOuMajResultats({ 
             prescriptionId: prescriptionData.id, 
             resultatData: resultatPayload,
         });
 
-
-        if (andValidate && resultatCreeOuMaj?.resultat?.id) { // Ou juste prescriptionData.id si l'API valider ne dépend pas du résultat créé
-            await handleValidateResults(prescriptionData.id); // Passer l'ID de la prescription
+        if (andValidate && resultatCreeOuMaj?.resultat?.id) {
+            await handleValidateResults(prescriptionData.id);
         } else if (andValidate) {
              console.warn("Impossible de valider immédiatement, ID du résultat manquant ou erreur de sauvegarde.");
         }
         
-        if(!andValidate || !resultatCreeOuMaj?.resultat?.id) { // Si on n'a pas validé ou s'il y a eu un souci pour valider direct
+        if(!andValidate || !resultatCreeOuMaj?.resultat?.id) {
             onClose();
         }
 
     } catch (error) {
-        // Les erreurs sont gérées par les mutations
+        console.error("Erreur dans handleSave:", error);
     }
   };
 
@@ -240,10 +240,18 @@ const SaisirResultatsExamenModal = ({ open, onClose, prescriptionData, laboranti
   const isLoadingAnything = isLoadingParametres || isSavingResultats || isValidating /*|| isLoadingResultatExistant*/;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth
+      // Ajouter des props pour forcer l'affichage
+      disableEscapeKeyDown={false}
+      disableBackdropClick={false}
+    >
       <DialogTitle>
         <Typography variant="h5">
-          Saisie des Résultats pour {prescriptionData?.TypeExamen?.nom}
+          Saisie des Résultats pour {prescriptionData?.TypeExamen?.nom || 'Examen'}
         </Typography>
         <Typography variant="subtitle1" color="textSecondary">
           Patient: {prescriptionData?.patientInfo?.prenom} {prescriptionData?.patientInfo?.nom} ({prescriptionData?.patientInfo?.matricule})

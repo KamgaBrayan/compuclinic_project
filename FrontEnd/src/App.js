@@ -10,29 +10,12 @@ import doctorProfile from "./screens/Doctors/DoctorProfile";
 import doctorSchedule from "./screens/Doctors/DoctorSchedule";
 import addDoctor from "./screens/Doctors/AddDoctor";
 import allDoctor from "./screens/Doctors/AllDoctor";
-// import appInbox from "./screens/App/Inbox";
-// import appChat from "./screens/App/Chat";
 import appCalendar from "./screens/App/Calendar";
 import appContact from "./screens/App/Contact";
-// import appTaskbar from "./screens/App/Taskbar";
 import filemanagerdashboard from "./screens/FileManager/Dashboard";
 import filedocuments from "./screens/FileManager/Documents";
 import filemedia from "./screens/FileManager/Media";
 import fileimages from "./screens/FileManager/Images";
-// import blognewPost from "./screens/Blog/NewPost";
-// import blogdetails from "./screens/Blog/BlogDetails";
-// import bloglist from "./screens/Blog/BlogList";
-// import uitypography from "./screens/UIElements/Typography";
-// import uitabs from "./screens/UIElements/Tabs";
-// import uibuttons from "./screens/UIElements/Button";
-// import bootstrapui from "./screens/UIElements/BootstrapUI";
-// import uiicons from "./screens/UIElements/Icons";
-// import uinotifications from "./screens/UIElements/Notifications";
-// import uicolors from "./screens/UIElements/Colors";
-// import uilistgroup from "./screens/UIElements/ListGroup";
-// import uimediaobject from "./screens/UIElements/MediaObject";
-// import uimodal from "./screens/UIElements/Modals";
-// import uiprogressbar from "./screens/UIElements/ProgressBar";
 import widgetsdata from "./screens/Widgets/Data";
 import widgetsweather from "./screens/Widgets/Weather";
 import widgetsblog from "./screens/Widgets/Blog";
@@ -314,76 +297,7 @@ class App extends React.Component {
                     path={`${process.env.PUBLIC_URL}/fileimages`}
                     component={fileimages}
                   />
-                  {/* <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/blognewpost`}
-                    component={blognewPost}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/blogdetails`}
-                    component={blogdetails}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/bloglist`}
-                    component={bloglist}
-                  /> */}
-                  {/* <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uitypography`}
-                    component={uitypography}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uitabs`}
-                    component={uitabs}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/bootstrapui`}
-                    component={bootstrapui}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uiicons`}
-                    component={uiicons}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uinotifications`}
-                    component={uinotifications}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uicolors`}
-                    component={uicolors}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uilistgroup`}
-                    component={uilistgroup}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uimediaobject`}
-                    component={uimediaobject}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uimodal`}
-                    component={uimodal}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uibuttons`}
-                    component={uibuttons}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/uiprogressbar`}
-                    component={uiprogressbar}
-                  /> */}
+                  
                   <Route
                     exact
                     path={`${process.env.PUBLIC_URL}/widgetsdata`}

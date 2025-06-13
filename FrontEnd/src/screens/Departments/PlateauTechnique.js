@@ -2,7 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import PageHeader from "../../components/PageHeader";
 import { Dropdown } from "react-bootstrap";
-import Department from "../../components/Forms/BasicValidation";
+// import Department from "../../components/Forms/BasicValidation";
 // import AdvancedValidation from "../../components/Forms/AdvancedValidation";
 
 class PlateauTechnique extends React.Component {

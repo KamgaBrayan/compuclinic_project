@@ -12,54 +12,6 @@ import {TableIa} from "../../components/Tables/TableIa"
 import axios from 'axios';
 import { useQuery, useQueryClient, useMutation, QueryClient } from 'react-query';
 
-/*
-const wServer = {
-  GET: {
-    PATIENT: {
-      ALL: '/patients'
-    }
-  }
-}
-*/
-
-/*
-function formatDate(date) {
-  const d = new Date(date);
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-}
-
-*/
-
-/*
-function useGetUsers() {
-  return useQuery({
-    queryKey: ['users'],
-    queryFn: async () => {
-      try {
-        // Récupérer tous les patients
-        const response = await axios.get(`${wServer.GET.PATIENT.ALL}`);
-        
-        // Filtrer les patients qui ont un service médical et qui ne sont pas marqués comme supprimés
-        const filteredPatients = response.data.filter(patient => {
-          const medicalServices = ['Psychiatrie', 'consultation', 'Urgence', 'Pediatrie'];
-          return medicalServices.includes(patient.service) && !patient.deleted;
-        });
-
-        // Formater les données pour l'affichage
-        return filteredPatients.map(patient => ({
-          ...patient,
-          birthDate: formatDate(patient.birthDate),
-          status: 'non_traite'
-        }));
-      } catch (error) {
-        console.error('Error fetching patients:', error);
-        return [];
-      }
-    },
-    refetchOnWindowFocus: false,
-  });
-}
-*/
 
 class Medicine extends React.Component {
   constructor(props) {

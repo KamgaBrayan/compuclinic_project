@@ -21,29 +21,61 @@ export function UserAccounWidget() {
     });
 
     useEffect(()=> {
-        const loadDatas = async () => {
-            
-            setLoading(true);
-            
-            fetch(`${wServer.GET.LOGGED_IN}`, {
-                method: 'GET',
-                redirect: 'follow',
-                headers: {'Authorization': `Token ${localStorage.getItem("_compuclinicToken")}`}
-            })
-            .then((response) => {
-              if (response.status === 200) return response.json();
-            })
-            .then((result) => {
-                //console.log(result);
-                setDatas(result.data);
-                setTimeout(setLoading(false), 1500);
-            })
-            .catch(error => console.log('error', error)); 
-        }
-
-        //exec
-        loadDatas();
-    }, [])
+      const loadDatas = async () => {
+          setLoading(true);
+          try {
+              const response = await fetch(`${wServer.GET.LOGGED_IN}`, {
+                  method: 'GET',
+                  redirect: 'follow',
+                  headers: {'Authorization': `Token ${localStorage.getItem("_compuclinicToken")}`}
+              });
+  
+              if (!response.ok) { // Vérifie si le statut est dans la plage 200-299
+                  // Gérer les erreurs HTTP (4xx, 5xx)
+                  console.error(`HTTP error! status: ${response.status}`);
+                  // Peut-être mettre à jour l'état pour afficher une erreur à l'utilisateur
+                  // setDatas(valeursParDefautOuErreur); // Garder les valeurs par défaut ou un état d'erreur
+                  setLoading(false);
+                  return; // Sortir de la fonction si la réponse n'est pas OK
+              }
+  
+              const result = await response.json();
+  
+              // Vérifier si result et result.data existent
+              if (result && result.data) {
+                  setDatas(result.data);
+              } else if (result) {
+                  // Si l'API renvoie directement l'objet utilisateur sans la clé 'data'
+                  // Par exemple, si l'API renvoie { id: ..., username: ..., ... }
+                  // Ajuste ceci en fonction de la réponse réelle de ton API /api/auth/log/
+                  console.warn("La réponse de l'API ne contient pas de clé 'data'. Utilisation de 'result' directement.");
+                  // Si tu sais que l'API /api/auth/log/ est censée renvoyer directement l'objet utilisateur:
+                  // setDatas(result); 
+                  // Ou si elle renvoie { user: { ... } } :
+                  // if (result.user) setDatas(result.user);
+  
+                  // Pour l'instant, loggons result pour voir sa structure
+                  console.log("Structure de 'result' pour /api/auth/log/:", result);
+                  // Si tu es sûr que result.data est la bonne structure, et qu'elle est parfois absente,
+                  // tu peux garder setDatas(result.data) mais il faut que l'API soit cohérente.
+                  // S'il n'y a pas de 'data', mais que 'result' est l'objet utilisateur, alors:
+                  // setDatas(result); // Décommente et ajuste selon la réponse de l'API
+  
+              } else {
+                  console.warn("La réponse JSON est vide ou inattendue.");
+                  // setDatas(valeursParDefautOuErreur);
+              }
+  
+          } catch (error) {
+              console.log('error fetching logged in user:', error); // Plus descriptif
+              // setDatas(valeursParDefautOuErreur);
+          } finally {
+              // setLoading(false) devrait être appelé directement, pas dans un setTimeout avec la valeur de retour de setLoading(false)
+              setLoading(false);
+          }
+      }
+      loadDatas();
+  }, [])
 
     if(datas)     return (
         <>

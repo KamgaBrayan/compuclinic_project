@@ -1,52 +1,26 @@
-import React, { useState, useEffect } from "react";
-import { Countries, DataListOf, Languages, SAMPLE_DATA, TimeZones } from "../../Data/Consts";
+import React, { useState } from "react";
+import { Countries, DataListOf} from "../../Data/Consts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPerson, faWeight } from "@fortawesome/free-solid-svg-icons";
 import { wServer } from "../../Data/Consts";
 import { Toast } from "react-bootstrap";
 import $ from 'jquery';
-// import * as bts from "bootstrap-select";
 import Select from 'react-select';
-import AsyncSelect from 'react-select/async';
 import makeAnimated from 'react-select/animated';
-import { PatientData } from "../../dataComponents/SecretaryDataComponent";
-import { DoctorsData } from "../../dataComponents/GrhDatas";
+
 
 const animatedComponents = makeAnimated();
 
 export const CreateConsultationFormModal = ({ isModalOpen=false }) => {
 
-    //const [modalStatus,setModalStatus] = useState(false)
-
-    //isModalOpen && setModalStatus(true);
     const inlinestyle = {
         textarea : { height: "100px !important" }
     }
     // To style all selects
     $(document).ready(function () {
-        // $('select').selectpicker();
-        // $('select').selectize({
-        //     sortField: 'text'
-        // });
+        
     });
-    {/* <input id="select-filter-input" type="text" placeholder="Texte" 
-        onKeyUp={()=>{
-            var input, filter, ul, li, option, i;
-            input = document.getElementById("select-filter-input");
-            filter = input.value.toUpperCase();
-            var select = document.getElementById("select-filter");
-            
-            option = select.getElementsByTagName("option");
-            for (i = 0; i < option.length; i++) {
-                var txtValue = option[i].textContent || option[i].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                option[i].style.display = "";
-                } else {
-                option[i].style.display = "none";
-                }
-            }}} 
-        /> */}
-
+    
     const [state,setState] = useState({
         loading: false,
         toast : false,
@@ -62,7 +36,7 @@ export const CreateConsultationFormModal = ({ isModalOpen=false }) => {
         event.preventDefault()
         setState({...state, loading:false})
         var formContent = new FormData(document.getElementById("createConsultationForm"));
-        //Convert form data to json object
+        
         var formJsonContent = {};
         formContent.forEach((value, key) => {
             if(!formJsonContent[key]) {formJsonContent[key] = value}
@@ -116,11 +90,13 @@ export const CreateConsultationFormModal = ({ isModalOpen=false }) => {
         console.error("Erreur lors du chargement des patients:", errorPatients);
         // Gérer l'erreur, afficher un message à l'utilisateur
     }
+    // Gestion des erreurs des médecins
+    /*
     if (errorDoctors) {
         console.error("Erreur lors du chargement des médecins:", errorDoctors);
         // Gérer l'erreur
     }
-
+    */
     return ( 
         <>
         {isModalOpen && document.getElementById("DataListOf")?.classList.toggle("show")}

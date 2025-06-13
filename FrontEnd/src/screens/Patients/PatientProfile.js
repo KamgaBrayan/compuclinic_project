@@ -2,18 +2,7 @@ import React from "react";
 import { connect } from "react-redux";
 import PageHeader from "../../components/PageHeader";
 import { wapp } from "../../Data/Consts";
-import DoctorProfileData from "../../dataComponents/DoctorProfileData";
 import PatientProfileData from "../../dataComponents/PatientProfileData";
-import { Tab, Tabs } from "react-bootstrap";
-import ProfileV1Setting from "../../components/Pages/ProfileV1Setting";
-import ProfileSliderCard from "../../components/Pages/ProfileSliderCard";
-import ProfileIconCard from "../../components/Pages/ProfileIconCard";
-import ProfileTabs from "../../components/Pages/ProfileTabs";
-import FollowersCard from "../../components/Dashboard/FollowersCard";
-import ProfileInfoCard from "../../components/Pages/ProfileInfoCard";
-import ProfileHeaderCard from "../../components/Pages/ProfileHeaderCard";
-
-import { ProfileSliderData } from "../../Data/Charts";
 
 class PatientProfile extends React.Component {
   componentDidMount() {

@@ -1,20 +1,12 @@
-import { Services, wServer } from "../../Data/Consts";
+import {wServer } from "../../Data/Consts";
 import axios from "axios";
 import React, { useMemo, useState } from 'react';
-import {
-  MRT_EditActionButtons,
-  MaterialReactTable,
-  useMaterialReactTable,
-} from 'material-react-table';
-import {
-  Box,
-  IconButton,
-  Tooltip,
-  DialogActions,
-} from '@mui/material';
+import {MRT_EditActionButtons, MaterialReactTable, useMaterialReactTable} from 'material-react-table';
+import {Box, IconButton, Tooltip, DialogActions} from '@mui/material';
 import { useQuery, QueryClient, QueryClientProvider, useQueryClient, useMutation } from 'react-query';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useNotification } from "../../reducers/NotificationContext";
 
 const Table = () => {
   const [validationErrors, setValidationErrors] = useState({});
@@ -149,6 +141,8 @@ const formatDate = (dateString) => {
 
 const useDeleteUser = () => {
   const queryClient = useQueryClient();
+  const {showNotification} = useNotification();
+
   return useMutation({
     mutationFn: async (matricule) => {
       try {
@@ -166,10 +160,12 @@ const useDeleteUser = () => {
       }
     },
     onSuccess: () => {
+      showNotification('Opération réussi', 'success')
       queryClient.invalidateQueries(['users-with-service']);
     },
     onError: (error) => {
       console.error('Error deleting user:', error);
+      showNotification('Une erreur est survenue lors de la suppresion du patient ! Veuillez reéssayer', 'error')
       throw error;
     },
   });

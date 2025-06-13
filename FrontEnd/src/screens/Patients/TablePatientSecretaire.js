@@ -1,36 +1,21 @@
 import { Services,wServer } from "../../Data/Consts";
 import axios from "axios";
-import React,{ useMemo, useState, useCallback}  from 'react';
-import {
-  MRT_EditActionButtons,
-  MaterialReactTable,
-  // createRow,
-  useMaterialReactTable,
-} from 'material-react-table';
-import {
-  Box,
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  MenuItem,
-  Tooltip,
-} from '@mui/material';
-import { useQuery,QueryClient,
-  QueryClientProvider,
-  useMutation,
-  useQueryClient, } from 'react-query';
-import { fakeData, serviceStates } from './makeData';
+import React,{ useMemo, useState}  from 'react';
+import { MRT_EditActionButtons, MaterialReactTable, useMaterialReactTable} from 'material-react-table';
+import { Box, Button, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Tooltip} from '@mui/material';
+import { useQuery,QueryClient, QueryClientProvider, useMutation, useQueryClient, } from 'react-query';
+
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import { useNotification } from "../../reducers/NotificationContext";
 
 const Table = () => {
 
   let dataService = Services.map(service => service.name);
   const [validationErrors, setValidationErrors] = useState({});
   const queryClient = useQueryClient();
+  const {showNotification} = useNotification();
 
   //call hooks
   const {
@@ -49,11 +34,13 @@ const Table = () => {
         console.log('Attempting to delete patient with matricule:', matricule);
         await deleteUser(matricule);
         // Si la suppression réussit, afficher un message de succès
-        alert('Patient deleted successfully');
+        showNotification('Patient deleted successfully', 'success')
+        
       } catch (error) {
         console.error('Delete operation failed:', error);
         // Afficher un message d'erreur plus descriptif
-        alert(error.message || 'Failed to delete patient. Please try again.');
+        showNotification('Failed to delete patient. Please try again.', 'error')
+        
       }
     }
   };
@@ -194,7 +181,7 @@ const Table = () => {
       table.setCreatingRow(null); // exit creating mode
     } catch (error) {
       console.error('Error in handleCreateUser:', error);
-      alert(error.message || 'Failed to create patient. Please try again.');
+      showNotification('Failed to create patient. Please try again.', 'error');
     }
   };
 
@@ -348,6 +335,8 @@ function useGetUsers() {
 
 function useCreateUser() {
   const queryClient = useQueryClient();
+  const {showNotification} = useNotification();
+
   return useMutation({
     mutationFn: async (values) => {
       try {
@@ -364,6 +353,7 @@ function useCreateUser() {
       }
     },
     onSuccess: () => {
+      showNotification('Patient crée avec succès', 'success')
       queryClient.invalidateQueries(['users']);
     },
     onError: (error) => {
@@ -375,11 +365,13 @@ function useCreateUser() {
 
 function useUpdateUser() {
   const queryClient = useQueryClient();
+  const {showNotification} = useNotification();
+
   return useMutation({
     mutationFn: async (patient) => {
       try {
         // Mettre à jour le patient
-        const response = await axios.put(wServer.UPDATE.PATIENT.UPDATE_BY_ID, patient);
+        const response = await axios.put(wServer.ACTION_POST.UPDATE.PATIENT.UPDATE_BY_ID, patient);
         
         // Si le service est mis à jour vers "Consultation", créer une nouvelle consultation
         if (patient.service === 'Consultation') {
@@ -407,6 +399,7 @@ function useUpdateUser() {
     },
     onSuccess: () => {
       // Rafraîchir les données des patients
+      showNotification('Mise à jour de patient effectué !', 'success')
       queryClient.invalidateQueries(['users']);
       // Rafraîchir les données des consultations pour la table de l'infirmier
       queryClient.invalidateQueries(['consultations']);
@@ -416,12 +409,14 @@ function useUpdateUser() {
 
 function useDeleteUser() {
   const queryClient = useQueryClient();
+  const {showNotification} = useNotification();
+
   return useMutation({
     mutationFn: async (matricule) => {
       try {
         console.log('Deleting patient with matricule:', matricule);
         // Utiliser l'endpoint de suppression existant
-        const response = await axios.delete(`${wServer.DELETE.PATIENT.DELETE_BY_ID}/${matricule}`);
+        const response = await axios.delete(`${wServer.ACTION_POST.DELETE.PATIENT.DELETE_BY_ID}/${matricule}`);
         console.log('Delete response:', response);
 
         // Si la suppression réussit, invalider les requêtes pour forcer un rafraîchissement
@@ -436,9 +431,11 @@ function useDeleteUser() {
       }
     },
     onSuccess: () => {
+      showNotification('Patient deleted successfully', 'success')
       queryClient.invalidateQueries(['users']);
     },
     onError: (error) => {
+      showNotification('An error occured when deleting patient. Please, try again !', 'error');
       console.error('Error deleting user:', error);
       throw error;
     },
