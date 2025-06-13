@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { Form, Button, Row, Col, Alert, Container } from 'react-bootstrap';
+import React from 'react';
 import { withRouter } from 'react-router-dom';
 import axios from 'axios';
+import { Container, Form, Button, Row, Col, Alert, Card } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faTrash, faSave } from '@fortawesome/free-solid-svg-icons';
+
 import { wServer } from '../../Data/Consts';
-import NavbarMenu from '../../components/NavbarMenu';
+import PageHeader from '../../components/PageHeader';
 import './AddDrug.css';
 
 class AddDrug extends React.Component {
@@ -11,37 +14,35 @@ class AddDrug extends React.Component {
     super(props);
     this.state = {
       formData: {
+        type: 'drug', // **NEW: Default to 'drug'**
         name: '',
         genericName: '',
         laboratory: '',
-        dosageForm: '',
-        administrationMethod: '',
+        dosageForm: 'tablet',
+        administrationMethod: 'oral',
         unitPrice: '',
         stock: '',
         minStockThreshold: '',
-        storageCondition: '',
+        storageCondition: 'roomTemperature',
         composition: '',
         comment: '',
         photoUrl: ''
       },
       dosages: [
-        { fromAge: '', toAge: '', dose: '', frequency: '', duration: '' }
+        { fromAge: '', toAge: '', dose: '' }
       ],
       error: '',
       success: '',
       loading: false
     };
 
-    this.dosageForms = [
-      'comprimé', 'gélule', 'sirop', 'injectable',
-      'pommade', 'crème', 'suppositoire', 'gouttes',
-      'patch', 'spray', 'solution'
-    ];
+    this.dosageForms = ['tablet', 'capsule', 'syrup', 'injectable', 'powder', 'pastille', 'cream', 'drop', 'inhaler', 'suppository', 'spray'];
+    this.administrationMethods = ['oral', 'rectal', 'vaginal', 'intravenous', 'cutaneous', 'ocular', 'auricular'];
+    this.storageConditions = ['roomTemperature', 'refrigerated', 'frozen'];
+  }
 
-    this.administrationMethods = [
-      'oral', 'injectable', 'cutané', 'rectal',
-      'vaginal', 'ophtalmique', 'auriculaire', 'nasal'
-    ];
+  componentDidMount() {
+    window.scrollTo(0, 0);
   }
 
   handleInputChange = (e) => {
@@ -57,17 +58,14 @@ class AddDrug extends React.Component {
   handleDosageChange = (index, field, value) => {
     this.setState(prevState => {
       const newDosages = [...prevState.dosages];
-      newDosages[index] = {
-        ...newDosages[index],
-        [field]: value
-      };
+      newDosages[index] = { ...newDosages[index], [field]: value };
       return { dosages: newDosages };
     });
   };
 
   addDosageRow = () => {
     this.setState(prevState => ({
-      dosages: [...prevState.dosages, { fromAge: '', toAge: '', dose: '', frequency: '', duration: '' }]
+      dosages: [...prevState.dosages, { fromAge: '', toAge: '', dose: '' }]
     }));
   };
 
@@ -84,43 +82,33 @@ class AddDrug extends React.Component {
     this.setState({ loading: true, error: '', success: '' });
 
     try {
-      // Préparer les données du médicament
       const drugData = {
         ...this.state.formData,
         unitPrice: parseFloat(this.state.formData.unitPrice),
         stock: parseInt(this.state.formData.stock),
         minStockThreshold: parseInt(this.state.formData.minStockThreshold)
       };
+      const validDosages = this.state.dosages.filter(d => d.fromAge && d.toAge && d.dose);
 
-      // Créer le médicament
-      const drugResponse = await axios.post(wServer.POST.PHARMACY.ADD, drugData);
-      const newDrugId = drugResponse.data.id;
+      const response = await axios.post(wServer.CREATE.PHARMACY.DRUG, drugData);
+      const newItemId = response.data.drug.id;
 
-      // Ajouter les posologies si elles existent
-      if (this.state.dosages.length > 0) {
-        const dosagePromises = this.state.dosages
-          .filter(d => d.fromAge && d.toAge && d.dose)
-          .map(dosage => ({
-            ...dosage,
-            fromAge: parseInt(dosage.fromAge),
-            toAge: parseInt(dosage.toAge),
-            dose: parseFloat(dosage.dose)
-          }))
-          .map(dosage => 
-            axios.post(wServer.POST.PHARMACY.DOSAGE(newDrugId), dosage)
-          );
-
+      if (newItemId && drugData.type === 'drug' && validDosages.length > 0) {
+        const dosagePromises = validDosages.map(dosage =>
+          axios.post(wServer.CREATE.PHARMACY.DOSAGE(newItemId), { ...dosage })
+        );
         await Promise.all(dosagePromises);
       }
 
-      this.setState({ success: 'Médicament ajouté avec succès' });
+      this.setState({ success: 'Item added successfully! Redirecting...' });
       setTimeout(() => {
         this.props.history.push('/pharmacy');
-      }, 1500);
+      }, 2000);
+
     } catch (error) {
-      console.error('Error adding drug:', error);
-      this.setState({ 
-        error: error.response?.data?.message || 'Erreur lors de l\'ajout du médicament'
+      console.error('Error adding item:', error.response?.data || error);
+      this.setState({
+        error: error.response?.data?.message || 'Error adding item. Please check the fields.'
       });
     } finally {
       this.setState({ loading: false });
@@ -132,311 +120,101 @@ class AddDrug extends React.Component {
     const { history } = this.props;
 
     return (
-      <React.Fragment>
-        <NavbarMenu />
-        <div className="main-container">
+      <div style={{ flex: 1 }}>
+        <div className="container-fluid">
+          <PageHeader HeaderText="Add New Inventory Item" Breadcrumb={[{ name: "Inventory", navigate: "/pharmacy" }, { name: "Add Item" }]} />
           <Container className="add-drug-container">
-            <div className="page-header">
-              <h2>Ajouter un nouveau médicament</h2>
-              <Button 
-                variant="outline-primary" 
-                className="back-button"
-                onClick={() => history.push('/pharmacy')}
-              >
-                <i className="fas fa-arrow-left"></i> Retour à la pharmacie
-              </Button>
-            </div>
-
             {error && <Alert variant="danger">{error}</Alert>}
             {success && <Alert variant="success">{success}</Alert>}
 
             <Form onSubmit={this.handleSubmit} className="add-drug-form">
-              <div className="form-section">
-                <h5>Informations Générales</h5>
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Nom du médicament *</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={this.handleInputChange}
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Nom générique</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="genericName"
-                        value={formData.genericName}
-                        onChange={this.handleInputChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
 
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Laboratoire *</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="laboratory"
-                        value={formData.laboratory}
-                        onChange={this.handleInputChange}
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Forme galénique *</Form.Label>
-                      <Form.Select
-                        name="dosageForm"
-                        value={formData.dosageForm}
-                        onChange={this.handleInputChange}
-                        required
-                      >
-                        <option value="">Sélectionner une forme</option>
-                        {this.dosageForms.map(form => (
-                          <option key={form} value={form}>{form}</option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </div>
+              <Card className="mb-4">
+                <Card.Header><h5>Item Type</h5></Card.Header>
+                <Card.Body>
+                  <Form.Group>
+                    <div className="d-flex gap-3">
+                      <Form.Check type="radio" id="type-drug" name="type" label="Drug" value="drug" checked={formData.type === 'drug'} onChange={this.handleInputChange} />
+                      <Form.Check type="radio" id="type-equipment" name="type" label="Equipment" value="equipment" checked={formData.type === 'equipment'} onChange={this.handleInputChange} />
+                    </div>
+                  </Form.Group>
+                </Card.Body>
+              </Card>
 
-              <div className="form-section">
-                <h5>Administration et Stock</h5>
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Voie d'administration *</Form.Label>
-                      <Form.Select
-                        name="administrationMethod"
-                        value={formData.administrationMethod}
-                        onChange={this.handleInputChange}
-                        required
-                      >
-                        <option value="">Sélectionner une voie</option>
-                        {this.administrationMethods.map(method => (
-                          <option key={method} value={method}>{method}</option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Prix unitaire (FCFA) *</Form.Label>
-                      <Form.Control
-                        type="number"
-                        name="unitPrice"
-                        value={formData.unitPrice}
-                        onChange={this.handleInputChange}
-                        required
-                        min="0"
-                        step="0.01"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Stock actuel *</Form.Label>
-                      <Form.Control
-                        type="number"
-                        name="stock"
-                        value={formData.stock}
-                        onChange={this.handleInputChange}
-                        required
-                        min="0"
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Seuil minimal *</Form.Label>
-                      <Form.Control
-                        type="number"
-                        name="minStockThreshold"
-                        value={formData.minStockThreshold}
-                        onChange={this.handleInputChange}
-                        required
-                        min="0"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </div>
-
-              <div className="form-section">
-                <h5>Posologie</h5>
-                {dosages.map((dosage, index) => (
-                  <div key={index} className="dosage-row">
-                    <Row>
-                      <Col md={2}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Âge min</Form.Label>
-                          <Form.Control
-                            type="number"
-                            value={dosage.fromAge}
-                            onChange={(e) => this.handleDosageChange(index, 'fromAge', e.target.value)}
-                            min="0"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={2}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Âge max</Form.Label>
-                          <Form.Control
-                            type="number"
-                            value={dosage.toAge}
-                            onChange={(e) => this.handleDosageChange(index, 'toAge', e.target.value)}
-                            min="0"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={2}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Dose (mg)</Form.Label>
-                          <Form.Control
-                            type="number"
-                            value={dosage.dose}
-                            onChange={(e) => this.handleDosageChange(index, 'dose', e.target.value)}
-                            min="0"
-                            step="0.1"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={3}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Fréquence</Form.Label>
-                          <Form.Control
-                            type="text"
-                            value={dosage.frequency}
-                            onChange={(e) => this.handleDosageChange(index, 'frequency', e.target.value)}
-                            placeholder="ex: 3 fois/jour"
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={3}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Durée</Form.Label>
-                          <Form.Control
-                            type="text"
-                            value={dosage.duration}
-                            onChange={(e) => this.handleDosageChange(index, 'duration', e.target.value)}
-                            placeholder="ex: 7 jours"
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                    {dosages.length > 1 && (
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => this.removeDosageRow(index)}
-                        className="remove-dosage-btn"
-                      >
-                        <i className="fas fa-trash"></i> Supprimer
-                      </Button>
+              <Card className="mb-4">
+                <Card.Header><h5>General Information</h5></Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={6}><Form.Group className="mb-3"><Form.Label>{formData.type === 'drug' ? 'Drug Name' : 'Equipment Name'} *</Form.Label><Form.Control type="text" name="name" value={formData.name} onChange={this.handleInputChange} required /></Form.Group></Col>
+                    {formData.type === 'drug' ? (
+                      <>
+                        <Col md={6}><Form.Group className="mb-3"><Form.Label>Generic Name *</Form.Label><Form.Control type="text" name="genericName" value={formData.genericName} onChange={this.handleInputChange} required /></Form.Group></Col>
+                        <Col md={6}><Form.Group className="mb-3"><Form.Label>Laboratory *</Form.Label><Form.Control type="text" name="laboratory" value={formData.laboratory} onChange={this.handleInputChange} required /></Form.Group></Col>
+                      </>
+                    ) : (
+                      <Col md={6}><Form.Group className="mb-3"><Form.Label>Manufacturer</Form.Label><Form.Control type="text" name="laboratory" value={formData.laboratory} onChange={this.handleInputChange} /></Form.Group></Col>
                     )}
-                  </div>
-                ))}
-                <Button
-                  variant="outline-primary"
-                  onClick={this.addDosageRow}
-                  className="add-dosage-btn"
-                >
-                  <i className="fas fa-plus"></i> Ajouter une posologie
-                </Button>
-              </div>
+                    <Col md={6}><Form.Group className="mb-3"><Form.Label>Photo URL</Form.Label><Form.Control type="url" name="photoUrl" value={formData.photoUrl} onChange={this.handleInputChange} /></Form.Group></Col>
+                  </Row>
+                </Card.Body>
+              </Card>
 
-              <div className="form-section">
-                <h5>Informations Complémentaires</h5>
-                <Row>
-                  <Col md={12}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Conditions de stockage</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="storageCondition"
-                        value={formData.storageCondition}
-                        onChange={this.handleInputChange}
-                        placeholder="ex: Conserver à température ambiante"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
+              {formData.type === 'drug' &&
+                <Card className="mb-4">
+                  <Card.Header><h5>Form, Administration & Price</h5></Card.Header>
+                  <Card.Body>
+                    <Row>
+                      <Col md={4}><Form.Group className="mb-3"><Form.Label>Form *</Form.Label><Form.Control as="select" name="dosageForm" value={formData.dosageForm} onChange={this.handleInputChange} required>{this.dosageForms.map(form => <option key={form} value={form}>{form}</option>)}</Form.Control></Form.Group></Col>
+                      <Col md={4}><Form.Group className="mb-3"><Form.Label>Administration *</Form.Label><Form.Control as="select" name="administrationMethod" value={formData.administrationMethod} onChange={this.handleInputChange} required >{this.administrationMethods.map(method => <option key={method} value={method}>{method}</option>)}</Form.Control></Form.Group></Col>
+                      <Col md={4}><Form.Group className="mb-3"><Form.Label>Unit Price (FCFA) *</Form.Label><Form.Control type="number" name="unitPrice" value={formData.unitPrice} onChange={this.handleInputChange} required min="0" /></Form.Group></Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
+              }
 
-                <Row>
-                  <Col md={12}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Composition</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={3}
-                        name="composition"
-                        value={formData.composition}
-                        onChange={this.handleInputChange}
-                        placeholder="Détaillez la composition du médicament"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
+              <Card className="mb-4">
+                <Card.Header><h5>Stock & Storage</h5></Card.Header>
+                <Card.Body>
+                  <Row>
+                    <Col md={4}><Form.Group className="mb-3"><Form.Label>Current Stock *</Form.Label><Form.Control type="number" name="stock" value={formData.stock} onChange={this.handleInputChange} required min="0" /></Form.Group></Col>
+                    <Col md={4}><Form.Group className="mb-3"><Form.Label>Minimum Threshold *</Form.Label><Form.Control type="number" name="minStockThreshold" value={formData.minStockThreshold} onChange={this.handleInputChange} required min="0" /></Form.Group></Col>
+                    <Col md={4}><Form.Group className="mb-3"><Form.Label>Storage Condition *</Form.Label><Form.Control as="select" name="storageCondition" value={formData.storageCondition} onChange={this.handleInputChange} required >{this.storageConditions.map(cond => <option key={cond} value={cond}>{cond.replace(/([A-Z])/g, ' $1').trim()}</option>)}</Form.Control></Form.Group></Col>
+                  </Row>
+                </Card.Body>
+              </Card>
 
-                <Row>
-                  <Col md={12}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Commentaires</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={3}
-                        name="comment"
-                        value={formData.comment}
-                        onChange={this.handleInputChange}
-                        placeholder="Ajoutez des remarques ou précautions particulières"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </div>
+              {formData.type === 'drug' &&
+                <Card className="mb-4">
+                  <Card.Header><h5>Dosage</h5></Card.Header>
+                  <Card.Body>
+                    {dosages.map((dosage, index) => (
+                      <div key={index} className="dosage-row"><Row className="align-items-end"><Col md={3}><Form.Group><Form.Label>From Age</Form.Label><Form.Control type="number" value={dosage.fromAge} onChange={(e) => this.handleDosageChange(index, 'fromAge', e.target.value)} min="0" /></Form.Group></Col><Col md={3}><Form.Group><Form.Label>To Age</Form.Label><Form.Control type="number" value={dosage.toAge} onChange={(e) => this.handleDosageChange(index, 'toAge', e.target.value)} min="0" /></Form.Group></Col><Col md={4}><Form.Group><Form.Label>Dose (mg)</Form.Label><Form.Control type="number" value={dosage.dose} onChange={(e) => this.handleDosageChange(index, 'dose', e.target.value)} min="0" step="0.1" /></Form.Group></Col><Col md={2} className="text-center"><Button variant="outline-danger" className="remove-dosage-btn" onClick={() => this.removeDosageRow(index)} disabled={dosages.length === 1}><FontAwesomeIcon icon={faTrash} /></Button></Col></Row></div>
+                    ))}
+                    <Button variant="outline-primary" onClick={this.addDosageRow} className="add-dosage-btn mt-3"><FontAwesomeIcon icon={faPlus} /> Add Dosage</Button>
+                  </Card.Body>
+                </Card>
+              }
+
+              <Card className="mb-4">
+                <Card.Header><h5>Additional Information</h5></Card.Header>
+                <Card.Body>
+                  <Row>
+                    {formData.type === 'drug' && <Col md={12}><Form.Group className="mb-3"><Form.Label>Composition</Form.Label><Form.Control as="textarea" rows={2} name="composition" value={formData.composition} onChange={this.handleInputChange} /></Form.Group></Col>}
+                    <Col md={12}><Form.Group className="mb-3"><Form.Label>Comments</Form.Label><Form.Control as="textarea" rows={2} name="comment" value={formData.comment} onChange={this.handleInputChange} /></Form.Group></Col>
+                  </Row>
+                </Card.Body>
+              </Card>
 
               <div className="form-actions">
-                <Button 
-                  variant="secondary" 
-                  onClick={() => history.push('/pharmacy')}
-                  disabled={loading}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin"></i> Enregistrement...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-save"></i> Enregistrer
-                    </>
-                  )}
+                <Button variant="secondary" onClick={() => history.push('/pharmacy')} disabled={loading}>Cancel</Button>
+                <Button variant="primary" type="submit" disabled={loading}>
+                  {loading ? <><i className="fas fa-spinner fa-spin"></i> Saving...</> : <><FontAwesomeIcon icon={faSave} /> Save Item</>}
                 </Button>
               </div>
             </Form>
           </Container>
         </div>
-      </React.Fragment>
+      </div>
     );
   }
 }
