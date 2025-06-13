@@ -1,0 +1,24 @@
+{
+  "name": "NEWBACKEND",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.13.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "lru-cache": "^10.2.2",
+    "mariadb": "^3.4.0",
+    "mysql2": "^3.0.0",
+    "sequelize": "^6.37.5",
+    "sqlite3": "^5.1.7"
+  }
+}

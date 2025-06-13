@@ -1,0 +1,45 @@
+{
+    "/secretaire":{
+        "/addUnExistingPatient":["firstName", "lastName", "birthDate", "sex", "serviceName"],
+        "/getServices":[],
+        "/getPatients":[],
+        "/searchPatientById":["patientId"],
+        "/searchPatientsByName":["patientName"],  //on doit envoyer une liste de patients
+        "/addExistingPatient":["patientId", "serviceName"],
+        "/updatePatientById":["patientId","firstName", "lastName", "birthDate", "sex", "serviceName"],
+        "/deletePatientById":["patientId"]
+    },
+    "/infirmiere":{ 
+        "/preleverPatient":["temperature","weight", "height", "pressure", "symptomes", "antecedents"]
+    },
+    "/medecin":{
+        "/addDiagnostique":["diagnostique"],
+        "/addPrescription":["nommed1:posology","nommed2:posology","nommed3:posology"]
+    }
+}
+unePersonne = {
+    "patientId":"",
+    "firstName":"",
+    "lastName":"",
+    "birthDate":"",
+    "sex":"",
+    "serviceName":"",
+    "temperature":"",
+    "weight":"",
+    "height":"",
+    "pressure":"",
+    "symptomes":"",
+    "antecedents":""
+}
+
+response{
+    "status": "200||**",
+    "data": "contenu du message d'erreur"
+}
+services:[
+    {name:"Urgence", code:"OP"},
+    {name:"Pediatrie", code:"CS"},
+    {name:"Laboratoire", code:"DR"},
+    {name:"Psychiatrie", code:"NS"},
+    {name:"Plateau Technique", code:"PT"},
+]

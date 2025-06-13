@@ -1,0 +1,48 @@
+{
+    "/secretaire":{
+        "/addUnExistingPatient":["firstName", "lastName", "birthDate", "sex", "serviceName"],
+        "/getServices":[],
+        "/getPatientById":["matricule"],#retourne les infos du patient par son ID. 
+	"/getPatients:[""],#retourne tous les patients
+        "/addConsultation":["matricule", "serviceName"], #ici , on initialise une consultation. 
+        "/updatePatientById":["matricule","firstName", "lastName", "birthDate", "sex", "serviceName"],
+        "/deletePatientById":["matricule"]
+    },
+    "/infirmiere":{ 
+        "/addPatientParameters":["matricule","temperature","weight", "height", "pressure", "symptomes", "antecedents"]
+    },
+    "/medecin":{
+        "/getConsultations":[],
+        "/updateResultConsultation":["diagnostique", "prescription"]
+    }
+}
+unePersonne = {
+    "matricule":"",
+    "firstName":"",
+    "lastName":"",
+    "birthDate":"",
+    "sex":"",
+
+// consultation
+    "serviceName":"",
+    "temperature":"",
+    "weight":"",
+    "height":"",
+    "pressure":"",
+    "symptomes":"",
+    "antecedents":"",
+    "diagnostique":"",
+    "prescription":""
+}
+
+response{
+    "status": "200||**",
+    "data": "contenu du message d'erreur"
+}
+services:[
+    {name:"Urgence", code:"OP"},
+    {name:"Pediatrie", code:"CS"},
+    {name:"Laboratoire", code:"DR"},
+    {name:"Psychiatrie", code:"NS"},
+    {name:"Plateau Technique", code:"PT"},
+]

@@ -1,0 +1,666 @@
+.pharmacy-dashboard {
+  padding: 20px;
+  height: 100%;
+  background-color: #f8f9fa;
+}
+
+/* Header avec navigation et bouton d'ajout */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-drug-button {
+  background-color: #2196f3;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.add-drug-button:hover {
+  background-color: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.add-drug-button i {
+  font-size: 0.9rem;
+}
+
+/* Navigation */
+.top-navigation {
+  margin-bottom: 20px;
+}
+
+.top-navigation .nav-tabs {
+  border-bottom: 2px solid #e9ecef;
+}
+
+.top-navigation .nav-link {
+  color: #495057;
+  font-weight: 500;
+  padding: 12px 20px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.3s ease;
+}
+
+.top-navigation .nav-link:hover {
+  color: #2196f3;
+  border-bottom: 2px solid #2196f3;
+}
+
+.top-navigation .nav-link.active {
+  color: #2196f3;
+  border-bottom: 2px solid #2196f3;
+  background-color: transparent;
+}
+
+/* Layout */
+.content-area {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: 100%;
+  overflow-y: auto;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sidebar .nav-link {
+  color: #495057;
+  padding: 10px 15px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-transform: capitalize;
+  margin-bottom: 5px;
+}
+
+.sidebar .nav-link:hover {
+  background-color: #e3f2fd;
+  color: #2196f3;
+}
+
+.sidebar .nav-link.active {
+  background-color: #2196f3;
+  color: white;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Drug Card */
+.drug-card {
+  height: 100%;
+  transition: all 0.3s ease;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.drug-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.card-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.drug-image {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.stock-alert-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #ff5252;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.drug-card .card-body {
+  padding: 1.25rem;
+}
+
+.drug-card .card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.drug-card .card-subtitle {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-bottom: 15px;
+}
+
+.drug-quick-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.info-item .label {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  margin-bottom: 3px;
+}
+
+.info-item .value {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.info-item.stock .value {
+  color: #27ae60;
+}
+
+.info-item.price .value {
+  color: #e67e22;
+}
+
+.drug-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.drug-badges .badge {
+  padding: 6px 12px;
+  font-weight: 500;
+  border-radius: 20px;
+}
+
+/* Modal Styles */
+.drug-details-modal .modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.drug-details-modal .modal-header {
+  background-color: #f8f9fa;
+  border-bottom: none;
+  padding: 1.5rem;
+}
+
+.drug-details-modal .modal-title {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.drug-details-modal .modal-body {
+  padding: 1.5rem;
+}
+
+.detail-image {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.drug-details-content {
+  padding: 0 1rem;
+}
+
+.detail-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.detail-section h5 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.stock-info {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.stock-level, .stock-threshold {
+  flex: 1;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stock-level {
+  background-color: #e3f2fd;
+}
+
+.stock-threshold {
+  background-color: #fff3e0;
+}
+
+.stock-count, .threshold-count {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.stock-level .stock-count {
+  color: #2196f3;
+}
+
+.stock-threshold .threshold-count {
+  color: #ff9800;
+}
+
+.stock-label, .threshold-label {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.dosage-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dosage-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.dosage-value {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.loading, .no-drugs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  width: 100%;
+  font-size: 1.2rem;
+  color: #7f8c8d;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.loading-dosages, .error-message, .no-dosages {
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.loading-dosages {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.no-dosages {
+  background-color: #f5f5f5;
+  color: #757575;
+}
+
+.dosages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dosage-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.dosage-item:hover {
+  background-color: #e3f2fd;
+}
+
+.age-range .badge {
+  font-size: 0.9rem;
+  padding: 6px 12px;
+}
+
+.dosage-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.dosage-details .dose {
+  font-weight: 600;
+  color: #2196f3;
+}
+
+.dosage-details .frequency {
+  color: #616161;
+  font-size: 0.9rem;
+}
+
+.dosage-details .duration {
+  color: #757575;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Barre de recherche */
+.search-bar {
+  position: relative;
+  margin-bottom: 1rem;
+  max-width: 400px;
+}
+
+.search-bar .input-group {
+  max-width: 100%;
+}
+
+.search-bar .form-control {
+  border-right: none;
+}
+
+.search-bar .btn {
+  border-left: none;
+  background-color: white;
+}
+
+.search-bar .btn:hover {
+  background-color: #f8f9fa;
+}
+
+.cart-button {
+  margin-left: 10px;
+  position: relative;
+  padding: 0.5rem 1rem;
+  min-width: 45px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-icon {
+  font-size: 1.1rem;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 0.7rem;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cart Button Styles */
+.cart-button {
+  position: relative;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.cart-icon {
+  font-size: 1.2rem;
+}
+
+/* Cart Animation */
+@keyframes addToCart {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cart-animation {
+  animation: addToCart 0.3s ease-in-out;
+}
+
+/* Add to Cart Section in Drug Details Modal */
+.add-to-cart-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-selector .btn {
+  width: 35px;
+  height: 35px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.quantity-display {
+  min-width: 40px;
+  text-align: center;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.add-to-cart-btn {
+  
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.add-to-cart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Drug Details Modal Enhancements */
+.drug-details-modal .modal-content {
+  border-radius: 15px;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.detail-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.drug-details-content {
+  padding: 1rem;
+}
+
+.detail-section {
+  margin-bottom: 1.5rem;
+}
+
+.detail-section h5 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.detail-section p {
+  margin-bottom: 0.5rem;
+}
+
+.stock-info {
+  display: flex;
+  gap: 2rem;
+  margin: 1rem 0;
+}
+
+.stock-level, .stock-threshold {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stock-count, .threshold-count {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.stock-label, .threshold-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+/* Badge Styles */
+.badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.badge.bg-primary {
+  background-color: #3498db !important;
+}
+
+.badge.bg-secondary {
+  background-color: #95a5a6 !important;
+}
+
+.badge.bg-info {
+  background-color: #3498db !important;
+}
+
+/* Loading and Error States */
+.loading, .no-drugs {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+}
+
+.error-message {
+  color: #e74c3c;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #fdf3f2;
+  margin-bottom: 1rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .content-area {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .main-content {
+    padding: 10px;
+  }
+
+  .drug-details-modal .modal-dialog {
+    margin: 0.5rem;
+  }
+}

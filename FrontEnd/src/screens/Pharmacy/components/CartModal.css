@@ -1,0 +1,169 @@
+.cart-modal .modal-content {
+  border-radius: 15px;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.cart-modal .modal-header {
+  border-bottom: 1px solid #eee;
+  padding: 1.5rem;
+}
+
+.cart-modal .modal-title {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.cart-modal .modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+.empty-cart-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  gap: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.cart-item:hover {
+  background-color: #f8f9fa;
+}
+
+.item-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-details {
+  flex: 2;
+}
+
+.item-details h5 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.item-details p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.item-price {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.item-quantity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-display {
+  min-width: 2.5rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.item-subtotal {
+  flex: 1;
+  text-align: right;
+  padding-right: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 100px;
+}
+
+.subtotal-label {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.subtotal-amount {
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.cart-summary {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.total-amount {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+.total-amount .amount {
+  margin-left: 1rem;
+  color: #0d6efd;
+}
+
+.remove-button {
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Animation pour l'ajout/suppression d'articles */
+.cart-item {
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Style des boutons de quantité */
+.item-quantity .btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.item-quantity .btn:disabled {
+  opacity: 0.5;
+}
