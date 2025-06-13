@@ -45,6 +45,7 @@ const searchDrugs = async (req, res) => {
 const createDrug = async (req, res) => {
   try {
     const {
+      type,
       name,
       photoUrl,
       dosageForm,
@@ -60,6 +61,7 @@ const createDrug = async (req, res) => {
     } = req.body;
 
     const newDrug = await Drug.create({
+      type: type || 'drug',
       name,
       photoUrl,
       dosageForm,
@@ -74,10 +76,11 @@ const createDrug = async (req, res) => {
       comment,
     });
 
-    res.status(201).json({ message: 'Drug created successfully', drug: newDrug });
+    // res.status(201).json({ message: 'Drug created successfully', drug: newDrug });
+    res.status(201).json({ message: 'Item created successfully', drug: newDrug });
   } catch (error) {
     console.error('Error creating drug:', error);
-    res.status(500).json({ message: 'Error creating drug', error: error.message });
+    res.status(500).json({ message: 'Error creating pharmacy item', error: error.message });
   }
 };
 
@@ -195,7 +198,7 @@ const addDrugDosage = async (req, res) => {
 const getDrugDosages = async (req, res) => {
   try {
     const { drugId } = req.params;
-    
+
     const dosages = await DrugDosage.findAll({
       where: { drugId: drugId },
       order: [['fromAge', 'ASC']]
@@ -218,7 +221,7 @@ const getDrugDosages = async (req, res) => {
 const getAllOrdonnances = async (req, res) => {
   try {
     const { statut, dateDebut, dateFin } = req.query;
-    
+
     let whereClause = {};
     if (statut) whereClause.statut = statut;
     if (dateDebut && dateFin) {
@@ -250,9 +253,9 @@ const getAllOrdonnances = async (req, res) => {
     res.status(200).json({ ordonnances: ordonnancesEnrichies });
   } catch (error) {
     console.error('Error fetching ordonnances:', error);
-    res.status(500).json({ 
-      message: 'Error fetching ordonnances', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Error fetching ordonnances',
+      error: error.message
     });
   }
 };
@@ -263,7 +266,7 @@ const getAllOrdonnances = async (req, res) => {
 const getOrdonnanceById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const ordonnance = await Ordonnance.findByPk(id, {
       include: [
         {
@@ -287,8 +290,8 @@ const getOrdonnanceById = async (req, res) => {
 
     // Enrichir avec les informations du patient
     const infoPatient = await getPatientInfo(ordonnance.matriculePatient);
-    
-    res.status(200).json({ 
+
+    res.status(200).json({
       ordonnance: {
         ...ordonnance.toJSON(),
         patientInfo: infoPatient
@@ -296,9 +299,9 @@ const getOrdonnanceById = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching ordonnance:', error);
-    res.status(500).json({ 
-      message: 'Error fetching ordonnance', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Error fetching ordonnance',
+      error: error.message
     });
   }
 };
@@ -309,27 +312,27 @@ const getOrdonnanceById = async (req, res) => {
 const dispenserMedicament = async (req, res) => {
   try {
     const { prescriptionId } = req.params;
-    const { 
-      pharmacienId, 
-      quantiteDispensee, 
-      prixUnitaire, 
-      observations 
+    const {
+      pharmacienId,
+      quantiteDispensee,
+      prixUnitaire,
+      observations
     } = req.body;
 
     // Vérifier que la prescription existe
     const prescription = await PrescriptionMedicament.findByPk(prescriptionId, {
       include: [Drug]
     });
-    
+
     if (!prescription) {
       return res.status(404).json({ message: 'Prescription not found' });
     }
 
     // Vérifier le stock disponible
     if (prescription.Drug.stock < quantiteDispensee) {
-      return res.status(400).json({ 
-        message: 'Stock insuffisant', 
-        stockDisponible: prescription.Drug.stock 
+      return res.status(400).json({
+        message: 'Stock insuffisant',
+        stockDisponible: prescription.Drug.stock
       });
     }
 
@@ -372,15 +375,15 @@ const dispenserMedicament = async (req, res) => {
       return dispensation;
     });
 
-    res.status(201).json({ 
-      message: 'Médicament dispensé avec succès', 
-      dispensation: result 
+    res.status(201).json({
+      message: 'Médicament dispensé avec succès',
+      dispensation: result
     });
   } catch (error) {
     console.error('Error dispensing medication:', error);
-    res.status(500).json({ 
-      message: 'Error dispensing medication', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Error dispensing medication',
+      error: error.message
     });
   }
 };
@@ -402,9 +405,9 @@ const getLowStockDrugs = async (req, res) => {
     res.status(200).json({ drugs: lowStockDrugs });
   } catch (error) {
     console.error('Error fetching low stock drugs:', error);
-    res.status(500).json({ 
-      message: 'Error fetching low stock drugs', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Error fetching low stock drugs',
+      error: error.message
     });
   }
 };
@@ -415,7 +418,7 @@ const getLowStockDrugs = async (req, res) => {
 const getPharmacyStatistics = async (req, res) => {
   try {
     const { dateDebut, dateFin } = req.query;
-    
+
     let whereClause = {};
     if (dateDebut && dateFin) {
       whereClause.dateDispensation = {
@@ -468,9 +471,9 @@ const getPharmacyStatistics = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching pharmacy statistics:', error);
-    res.status(500).json({ 
-      message: 'Error fetching pharmacy statistics', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Error fetching pharmacy statistics',
+      error: error.message
     });
   }
 };
@@ -502,16 +505,16 @@ const updateDrugStock = async (req, res) => {
 
     await drug.update({ stock: newStock });
 
-    res.status(200).json({ 
-      message: 'Stock mis à jour avec succès', 
+    res.status(200).json({
+      message: 'Stock mis à jour avec succès',
       drug,
-      motif 
+      motif
     });
   } catch (error) {
     console.error('Error updating drug stock:', error);
-    res.status(500).json({ 
-      message: 'Error updating drug stock', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Error updating drug stock',
+      error: error.message
     });
   }
 };
