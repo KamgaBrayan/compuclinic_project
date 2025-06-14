@@ -42,7 +42,7 @@ CREATE TABLE `Drugs` (
     `updatedAt` datetime NOT NULL,
     `type` enum('drug', 'equipment') NOT NULL DEFAULT 'drug',
     PRIMARY KEY (`id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+);
 
 DROP TABLE IF EXISTS `DrugDosages`;
 
@@ -57,7 +57,7 @@ CREATE TABLE `DrugDosages` (
     PRIMARY KEY (`id`),
     KEY `drugId` (`drugId`),
     CONSTRAINT `DrugDosages_ibfk_1` FOREIGN KEY (`drugId`) REFERENCES `Drugs` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+);
 
 INSERT INTO
     `Drugs`
