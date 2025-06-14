@@ -1,10 +1,6 @@
 const express = require('express');
 const laborantinController = require('../controllers/controllerLaborantin');
-<<<<<<< HEAD
 const pharmacyController = require('../controllers/controllerPharmacy');
-=======
-const pharmacyController = require('../controllers/controllerPharmacy'); // Import du controller pharmacie
->>>>>>> origin/test3
 
 const router = express.Router();
 
@@ -33,13 +29,8 @@ try {
 
   // Statistiques du laboratoire
   router.get('/statistiques', laborantinController.getStatistiquesLab);
-<<<<<<< HEAD
   
   // ========== NOUVELLES ROUTES POUR CONSULTATION PHARMACIE ==========Add commentMore actions
-=======
-
-  // ========== NOUVELLES ROUTES POUR CONSULTATION PHARMACIE ==========
->>>>>>> origin/test3
   // Routes en lecture seule pour que le laborantin puisse consulter la pharmacie
   router.get('/pharmacie/drugs', pharmacyController.getAllDrugs);
   router.get('/pharmacie/drugs/search', pharmacyController.searchDrugs);
@@ -47,11 +38,7 @@ try {
   router.get('/pharmacie/drugs/:drugId/dosage', pharmacyController.getDrugDosages);
   router.get('/pharmacie/drugs/low-stock', pharmacyController.getLowStockDrugs);
   router.get('/pharmacie/statistics', pharmacyController.getPharmacyStatistics);
-<<<<<<< HEAD
   
-=======
-
->>>>>>> origin/test3
 } catch (e) {
   console.error('Erreur dans les routes laborantin:', e);
 }
