@@ -1,5 +1,6 @@
 const express = require('express');
 const laborantinController = require('../controllers/controllerLaborantin');
+const pharmacyController = require('../controllers/controllerPharmacy');
 
 const router = express.Router();
 
@@ -28,6 +29,15 @@ try {
   
   // Statistiques du laboratoire
   router.get('/statistiques', laborantinController.getStatistiquesLab);
+  
+  // ========== NOUVELLES ROUTES POUR CONSULTATION PHARMACIE ==========Add commentMore actions
+  // Routes en lecture seule pour que le laborantin puisse consulter la pharmacie
+  router.get('/pharmacie/drugs', pharmacyController.getAllDrugs);
+  router.get('/pharmacie/drugs/search', pharmacyController.searchDrugs);
+  router.get('/pharmacie/drugs/:id', pharmacyController.getDrugById);
+  router.get('/pharmacie/drugs/:drugId/dosage', pharmacyController.getDrugDosages);
+  router.get('/pharmacie/drugs/low-stock', pharmacyController.getLowStockDrugs);
+  router.get('/pharmacie/statistics', pharmacyController.getPharmacyStatistics);
   
 } catch (e) {
   console.error('Erreur dans les routes laborantin:', e);

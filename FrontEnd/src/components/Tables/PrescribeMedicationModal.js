@@ -7,6 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
 import { wServer } from '../../Data/Consts'; 
+import { useNotification } from '../../reducers/NotificationContext';
 import { debounce } from 'lodash'; 
 
 // Hook pour la recherche de médicaments disponibles
@@ -29,30 +30,33 @@ const useSearchMedicaments = () => {
 };
 
 // Hook pour la mutation de création d'ordonnance
-const useCreerOrdonnance = () => {
+const useCreerOrdonnance = (onSuccessCallback) => {
   const queryClient = useQueryClient();
+  const { showNotification } = useNotification();
+
   return useMutation(
     async (ordonnanceData) => {
       const { data } = await axios.post(wServer.CREATE.MEDECIN.CREER_ORDONNANCE, ordonnanceData);
       return data;
     },
     {
-      onSuccess: (data) => {
-        // queryClient.invalidateQueries(['ordonnancesPatient', data.ordonnance.matriculePatient]);
+      onSuccess: (data, variables) => { // variables est ordonnanceData
         console.log('Ordonnance créée avec succès:', data.ordonnance);
-        // Afficher un toast de succès
+        showNotification('Ordonnance créée et enregistrée avec succès !', 'success');
+        queryClient.invalidateQueries(['ordonnancesPatient', variables.matriculePatient]);
+        if (onSuccessCallback) {
+            onSuccessCallback(); // Appeler le callback fourni par le parent
+        }
       },
-      /*
       onError: (error) => {
-        console.error('Erreur lors de la création de l\'ordonnance:', error);
-        // Afficher un toast d'erreur
+        console.error('Erreur lors de la création de l\'ordonnance:', error.response?.data || error.message);
+        showNotification(error.response?.data?.message || "Erreur lors de la création de l'ordonnance.", 'error');
       },
-      */
     }
   );
 };
 
-const PrescribeMedicationModal = ({ open, onClose, consultationData, medecinId }) => {
+const PrescribeMedicationModal = ({ open, onClose, consultationData, /*medecinId,*/ onOrdonnanceSuccess }) => {
   const [medicamentsPrescrits, setMedicamentsPrescrits] = useState([]);
   const [currentMedicament, setCurrentMedicament] = useState({
     medicamentId: null, // Stockera l'objet médicament sélectionné
@@ -68,8 +72,9 @@ const PrescribeMedicationModal = ({ open, onClose, consultationData, medecinId }
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
+  const { showNotification } = useNotification();
   const { search: searchMedicamentsAPI } = useSearchMedicaments();
-  const { mutate: creerOrdonnance, isLoading: isCreatingOrdonnance } = useCreerOrdonnance();
+  const { mutateAsync: creerOrdonnance, isLoading: isCreatingOrdonnance } = useCreerOrdonnance(onOrdonnanceSuccess);
   const queryClient = useQueryClient();
 
   // Debounce la fonction de recherche
@@ -165,7 +170,7 @@ const PrescribeMedicationModal = ({ open, onClose, consultationData, medecinId }
 
     const ordonnancePayload = {
       matriculePatient: consultationData.matricule,
-      medecinId: medecinId,
+      // medecinId: medecinId,
       consultationId: consultationData.id,
       medicaments: medicamentsPrescrits.map(med => ({
         medicamentId: med.medicamentId.id, // S'assurer que c'est bien l'ID du médicament
@@ -179,12 +184,12 @@ const PrescribeMedicationModal = ({ open, onClose, consultationData, medecinId }
 
     try {
       await creerOrdonnance(ordonnancePayload);
-      alert("Ordonnance créée avec succès !");
+      showNotification("Ordonnance créée avec succès !", "success");
       queryClient.invalidateQueries(['ordonnancesPatient', consultationData.matricule]);
       onClose();
     } catch (error) {
       console.error("Erreur lors de la création de l'ordonnance :", error);
-      alert("Une erreur s'est produite lors de la création de l'ordonnance.");
+      showNotification("Une erreur s'est produite lors de la création de l'ordonnance.", "error");
     }
   };
 

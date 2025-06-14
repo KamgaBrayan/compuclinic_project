@@ -22,6 +22,11 @@ try {
   router.get("/medicaments", medecin.getMedicamentsDisponibles);
   router.post("/creer-ordonnance", medecin.creerOrdonnance);
   router.get("/ordonnances/:matricule", medecin.getOrdonnancesPatient);
+
+  router.get("/consultations/:consultationId/ordonnance-active", medecin.getOrdonnanceActivePourConsultation);
+
+  // Route pour récupérer les prescriptions d'examens d'une consultation
+  router.get("/consultations/:consultationId/prescriptions-examens", medecin.getPrescriptionsExamensPourConsultation);
   
 } catch(e) {
   console.log("une erreur est survenue dans la page route medecin");

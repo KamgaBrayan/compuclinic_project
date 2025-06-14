@@ -66,6 +66,7 @@
     "react-sparklines": "^1.7.0",
     "react-summernote": "^2.0.2",
     "react-syntax-highlighter": "^12.2.1",
+    "react-to-print": "^3.1.0",
     "react-tooltip": "^4.2.10",
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",

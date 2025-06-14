@@ -21,7 +21,7 @@ const useGetTypesExamensDisponibles = () => {
 };
 
 // Hook pour la mutation de prescription d'examen
-const usePrescrireExamen = () => {
+const usePrescrireExamen = (onSinglePrescriptionSuccess) => {
   const queryClient = useQueryClient();
   const { showNotification } = useNotification();
 
@@ -32,12 +32,16 @@ const usePrescrireExamen = () => {
       return data;
     },
     {
-      onSuccess: (data) => { // 'data' est la réponse du serveur
+      onSuccess: (data, variables) => { // 'data' est la réponse du serveur
         console.log('Réponse du serveur (onSuccess usePrescrireExamen):', data); // << AJOUTER CE LOG
         if (data && data.prescription) {
             console.log('Examen prescrit avec succès (ID Prescription):', data.prescription.id);
             console.log('Statut de la prescription créée:', data.prescription.statut); // Devrait être 'prescrit'
-            showNotification('Examen prescrit avec succès !', 'success');
+            showNotification(`Examen "${data.prescription?.TypeExamen?.nom || 'Inconnu'}" prescrit.`, 'success');
+            queryClient.invalidateQueries(['prescriptionsExamenPatient', variables.matriculePatient]);
+            if (onSinglePrescriptionSuccess) {
+                onSinglePrescriptionSuccess(); // Appeler le callback fourni par le parent
+            }
         } else {
             console.warn("La réponse du serveur après prescription ne contient pas l'objet 'prescription' attendu.")
         }
@@ -50,7 +54,7 @@ const usePrescrireExamen = () => {
   );
 };
 
-const PrescribeExamModal = ({ open, onClose, consultationData /*, medecinId */}) => {
+const PrescribeExamModal = ({ open, onClose, consultationData,/* medecinId */ onPrescriptionSuccess }) => {
   const [prescriptions, setPrescriptions] = useState([
     { typeExamenId: '', indication: '', urgence: 'normale', prix: 0 }
   ]);
@@ -58,7 +62,9 @@ const PrescribeExamModal = ({ open, onClose, consultationData /*, medecinId */})
   const { showNotification } = useNotification();
 
   const { data: typesExamens = [], isLoading: isLoadingTypesExamens, isError: isErrorTypesExamens } = useGetTypesExamensDisponibles();
-  const { mutate: prescrireExamen, isLoading: isPrescribing } = usePrescrireExamen();
+  //const { mutate: prescrireExamen, isLoading: isPrescribing } = usePrescrireExamen();
+  
+  const { mutateAsync: prescrireExamen, isLoading: isPrescribing } = usePrescrireExamen(onPrescriptionSuccess); // Passer le callback au hook
   const queryClient = useQueryClient();
 
 

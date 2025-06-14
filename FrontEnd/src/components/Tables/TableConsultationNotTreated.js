@@ -18,25 +18,35 @@ import {
   TextField, // Importer TextField pour les champs non-MRT si besoin
   Typography, // Importer Typography
   Divider, // Importer Divider
+  Grid
 } from '@mui/material';
 
-import { fakeData, serviceStates } from './makeData';
+import { wServerRoot } from "../../Data/Consts";
 import EditIcon from '@mui/icons-material/Edit';
 import {DoneOutline} from '@mui/icons-material';
+import { useNotification } from "../../reducers/NotificationContext";
 
 
 import PrescribeMedicationModal from './PrescribeMedicationModal';
 import PrescribeExamModal from "./PrescribeExamModel";
+import PreviewOrdonnanceGlobaleModal from './PreviewOrdonnanceGlobaleModal'; 
 
 const Table = ( { treated }) => {
 
   let dataService = Services.map(service => service.name);
   const [validationErrors, setValidationErrors] = useState({});
+  const { showNotification } = useNotification();
 
   // --- États pour les nouveaux modals ---
   const [isPrescribeExamModalOpen, setIsPrescribeExamModalOpen] = useState(false);
   const [isPrescribeMedicationModalOpen, setIsPrescribeMedicationModalOpen] = useState(false);
   const [currentConsultationData, setCurrentConsultationData] = useState(null);
+
+  const [medicationsPrescribedInSession, setMedicationsPrescribedInSession] = useState(false);
+  const [examsPrescribedInSession, setExamsPrescribedInSession] = useState(false);
+  const [isPreviewOrdonnanceGlobaleModalOpen, setIsPreviewOrdonnanceGlobaleModalOpen] = useState(false);
+  const [consultationPourImpression, setConsultationPourImpression] = useState(null);
+  const [diagnosticPourImpression, setDiagnosticPourImpression] = useState('');
 
   const columns = useMemo(
     () => [
@@ -300,25 +310,51 @@ const Table = ( { treated }) => {
   };
 
   //UPDATE action
-  const handleSaveUser = async ({ values, table }) => {
-    const errors = validateUser(values);
+  
+  const handleSaveUser = async ({ values, table }) => { // 'values' contient { diagnostique: "..." }
+    const errors = validateUser(values); // Valide le diagnostic
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
+    setValidationErrors({});
+
+    if (!currentConsultationData || !currentConsultationData.matricule) {
+        console.error("Matricule de la consultation courante non trouvé pour sauvegarder le diagnostic !");
+        showNotification("Erreur: Données de consultation manquantes.", "error");
+        return;
+    }
 
     try {
+      // 1. Sauvegarder le diagnostic
       await updateUser({
-        matricule: currentConsultationData.matricule, // Assurez-vous que matricule est dans currentConsultationData
+        matricule: currentConsultationData.matricule,
         diagnostique: values.diagnostique,
-        // prescription: values.prescription, // Si vous gardez le champ texte
       });
-      table.setEditingRow(null);
+      // showNotification("Diagnostic sauvegardé avec succès!", "success"); // Peut-être redondant si on ouvre un autre modal
+      
+      setDiagnosticPourImpression(values.diagnostique); // Garder le diagnostic pour l'impression
+      table.setEditingRow(null); // Fermer le modal d'édition du diagnostic
+
+      // 2. Vérifier si des prescriptions ont été faites dans cette session d'édition
+      if (medicationsPrescribedInSession || examsPrescribedInSession) {
+        setConsultationPourImpression(currentConsultationData); // Passer les données de la consultation au modal d'impression
+        setIsPreviewOrdonnanceGlobaleModalOpen(true);
+        // Les états ...InSession seront réinitialisés à la fermeture du modal d'impression ou quand une nouvelle consult est ouverte
+      } else {
+        // Pas de prescriptions, on peut proposer de terminer la consultation directement
+        if (window.confirm("Aucune prescription n'a été ajoutée. Voulez-vous marquer cette consultation comme terminée ?")) {
+          await changeState({ matricule: currentConsultationData.matricule, statut: 'Terminer' });
+          showNotification("Consultation terminée.", "success");
+        }
+      }
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du diagnostic:', error);
-      // Gérer l'erreur (afficher un toast, etc.)
+      console.error('Erreur lors de la sauvegarde du diagnostic ou de la transition:', error);
+      showNotification(error.response?.data?.message || "Erreur lors de la sauvegarde.", "error");
     }
   };
+
+
 
   //Change state action
   const openChangeStateConfirmModal = (row) => {
@@ -335,6 +371,49 @@ const Table = ( { treated }) => {
       });
     }
   };
+
+  const handleMedicationsPrescribed = () => {
+    setMedicationsPrescribedInSession(true);
+    setIsPrescribeMedicationModalOpen(false); // Ferme le modal de médication
+  };
+
+  const handleExamsPrescribed = () => {
+    setExamsPrescribedInSession(true);
+    setIsPrescribeExamModalOpen(false); // Ferme le modal d'examen
+  };
+
+  const handleConfirmAndPrintOrdonnanceGlobale = async () => {
+    // Cette fonction est appelée par le modal de prévisualisation après impression
+    // (ou au clic sur "Confirmer et Imprimer" avant l'impression si on gère la fin ici)
+    if (consultationPourImpression) {
+        try {
+            await changeState({ matricule: consultationPourImpression.matricule, statut: 'Terminer' });
+            showNotification("Consultation finalisée et marquée comme terminée.", "success");
+        } catch (error) {
+            console.error("Erreur lors de la finalisation de la consultation:", error);
+            showNotification("Erreur lors de la finalisation de la consultation.", "error");
+        }
+    }
+    setIsPreviewOrdonnanceGlobaleModalOpen(false);
+    setConsultationPourImpression(null);
+    setDiagnosticPourImpression('');
+    setMedicationsPrescribedInSession(false); // Réinitialiser pour la prochaine
+    setExamsPrescribedInSession(false);       // Réinitialiser pour la prochaine
+  };
+
+  const handleModificationNeededFromPreview = () => {
+      // L'utilisateur veut modifier les prescriptions depuis le modal de prévisualisation
+      setIsPreviewOrdonnanceGlobaleModalOpen(false);
+      // Il faut rouvrir le modal d'édition principal pour que l'utilisateur puisse
+      // re-cliquer sur "Prescrire Médicaments" ou "Prescrire Examens".
+      // MaterialReactTable ne permet pas de rouvrir facilement son modal d'édition interne
+      // sans réinitialiser la ligne.
+      // Une solution simple est de notifier l'utilisateur.
+      showNotification("Veuillez ré-éditer la consultation pour modifier les prescriptions.", "info");
+      // On ne réinitialise pas consultationPourImpression ici pour qu'il puisse re-prévisualiser s'il annule la modif.
+  };
+
+
 
   const handleOpenPrescribeExamModal = (rowData) => {
     setCurrentConsultationData(rowData);
@@ -482,21 +561,39 @@ const Table = ( { treated }) => {
   return (
     <>
       <MaterialReactTable table={table} />
-      {/* --- Modals de prescription (seront créés dans des fichiers séparés) --- */}
-      {currentConsultationData && ( // S'assurer que les données sont là avant de rendre
+      {currentConsultationData && (
         <PrescribeExamModal
           open={isPrescribeExamModalOpen}
-          onClose={() => setIsPrescribeExamModalOpen(false)}
+          onClose={() => setIsPrescribeExamModalOpen(false)} // Fermeture simple
+          onPrescriptionSuccess={handleExamsPrescribed} // Nouveau callback après succès de la prescription d'examens
           consultationData={currentConsultationData}
-          // medecinId={"ID_DU_MEDECIN_CONNECTE"} // << REMPLACEZ CECI par la vraie valeur
+          medecinId={1} // REMPLACEZ CECI par la vraie valeur
         />
       )}
       {currentConsultationData && (
         <PrescribeMedicationModal
           open={isPrescribeMedicationModalOpen}
-          onClose={() => setIsPrescribeMedicationModalOpen(false)}
+          onClose={() => setIsPrescribeMedicationModalOpen(false)} // Fermeture simple
+          onOrdonnanceSuccess={handleMedicationsPrescribed} // Nouveau callback après succès de la création d'ordonnance
           consultationData={currentConsultationData}
-          // medecinId={"ID_DU_MEDECIN_CONNECTE"} // << REMPLACEZ CECI par la vraie valeur
+          medecinId={1} // REMPLACEZ CECI par la vraie valeur
+        />
+      )}
+      {consultationPourImpression && (
+        <PreviewOrdonnanceGlobaleModal
+          open={isPreviewOrdonnanceGlobaleModalOpen}
+          onClose={() => {
+            setIsPreviewOrdonnanceGlobaleModalOpen(false);
+            setConsultationPourImpression(null); // Important de nettoyer pour éviter réouverture non désirée
+            setDiagnosticPourImpression('');
+            // Ne pas réinitialiser ...InSession ici, car l'utilisateur peut annuler l'impression
+            // et vouloir sauvegarder sans imprimer (ce qui n'est pas le flux actuel)
+            // ou vouloir modifier. La réinitialisation se fait dans handleConfirmAndPrint...
+          }}
+          consultationData={consultationPourImpression}
+          diagnosticSauvegarde={diagnosticPourImpression}
+          onConfirmAndPrint={handleConfirmAndPrintOrdonnanceGlobale}
+          onModificationNeeded={handleModificationNeededFromPreview}
         />
       )}
     </>

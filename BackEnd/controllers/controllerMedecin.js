@@ -491,6 +491,78 @@ const getOrdonnancesPatient = async (req, res) => {
     }
 };
 
+const getOrdonnanceActivePourConsultation = async (req, res) => {
+    try {
+        const { consultationId } = req.params;
+        console.log(`Backend - getOrdonnanceActivePourConsultation - consultationId: ${consultationId}`);
+
+        const ordonnance = await Ordonnance.findOne({
+            where: { 
+                consultationId: consultationId,
+                // Tu pourrais ajouter un filtre sur le statut de l'ordonnance si pertinent (ex: statut: 'active')
+            },
+            include: [
+                {
+                    model: PrescriptionMedicament,
+                    include: [Drug] // Assure-toi que Drug est bien le modèle importé
+                },
+                // Optionnel: inclure le patient et le médecin si besoin pour l'affichage de l'ordonnance
+            ],
+            order: [['dateOrdonnance', 'DESC']] // Prendre la plus récente si plusieurs possibles
+        });
+
+        if (!ordonnance) {
+            // Ce n'est pas nécessairement une erreur 404, il se peut qu'aucune ordonnance n'ait été faite
+            console.log(`Backend - Aucune ordonnance active trouvée pour consultationId: ${consultationId}`);
+            return res.status(200).json({ message: 'Aucune ordonnance médicamenteuse trouvée pour cette consultation.', ordonnance: null });
+        }
+
+        console.log("Backend - Ordonnance active trouvée:", JSON.stringify(ordonnance, null, 2).substring(0, 500) + "...");
+        res.status(200).json({ ordonnance });
+
+    } catch (error) {
+        console.error('Backend - Erreur dans getOrdonnanceActivePourConsultation:', error);
+        res.status(500).json({ 
+            message: 'Erreur serveur lors de la récupération de l\'ordonnance.', 
+            errorDetails: error.message 
+        });
+    }
+};
+
+const getPrescriptionsExamensPourConsultation = async (req, res) => {
+    try {
+        const { consultationId } = req.params;
+        console.log(`Backend - getPrescriptionsExamensPourConsultation - consultationId: ${consultationId}`);
+
+        const prescriptionsExamens = await PrescriptionExamen.findAll({
+            where: { 
+                consultationId: consultationId 
+                // Tu pourrais ajouter un filtre sur le statut si pertinent (ex: statut != 'annule')
+            },
+            include: [
+                TypeExamen, // Inclure les détails du TypeExamen
+                // Optionnel: inclure le patient et le médecin
+            ],
+            order: [['datePrescription', 'ASC']]
+        });
+
+        if (!prescriptionsExamens || prescriptionsExamens.length === 0) {
+            console.log(`Backend - Aucune prescription d'examen trouvée pour consultationId: ${consultationId}`);
+            return res.status(200).json({ message: 'Aucun examen prescrit pour cette consultation.', prescriptionsExamens: [] });
+        }
+        
+        console.log(`Backend - ${prescriptionsExamens.length} prescriptions d'examens trouvées.`);
+        res.status(200).json({ prescriptionsExamens });
+
+    } catch (error) {
+        console.error('Backend - Erreur dans getPrescriptionsExamensPourConsultation:', error);
+        res.status(500).json({ 
+            message: 'Erreur serveur lors de la récupération des prescriptions d\'examens.', 
+            errorDetails: error.message 
+        });
+    }
+};
+
 module.exports = { 
     updateConsultationResultById, 
     getConsultations, 
@@ -503,5 +575,8 @@ module.exports = {
     // Nouvelles fonctions pour médicaments
     getMedicamentsDisponibles,
     creerOrdonnance,
-    getOrdonnancesPatient
+    getOrdonnancesPatient,
+
+    getOrdonnanceActivePourConsultation,
+    getPrescriptionsExamensPourConsultation
 };

@@ -1,0 +1,74 @@
+/* CSS optionnel pour PharmacyViewForLab avec Material-UI */
+/* La plupart des styles sont gérés par le système sx de MUI */
+
+/* Animations personnalisées */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pharmacy-view-animation {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Style pour le scroll personnalisé dans la sidebar */
+.pharmacy-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.pharmacy-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.pharmacy-sidebar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.pharmacy-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Style pour les cartes de médicaments */
+.drug-card-container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drug-card-container:hover {
+    transform: translateY(-4px);
+}
+
+/* Responsive pour les petits écrans */
+@media (max-width: 600px) {
+    .pharmacy-mobile-spacing {
+        padding: 8px !important;
+    }
+
+    .pharmacy-mobile-text {
+        font-size: 0.875rem !important;
+    }
+}
+
+/* Style pour l'indicateur de stock faible */
+.stock-warning-pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+    }
+}
