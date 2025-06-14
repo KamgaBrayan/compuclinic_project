@@ -205,7 +205,8 @@ const DrugCard = ({ drug, onViewDetails }) => {
       <div className="card-image-container">
         <Card.Img
           variant="top"
-          src={drug.photoUrl || 'https://www.universityofcalifornia.edu/sites/default/files/generic-drugs-istock.jpg'}
+          // src={drug.photoUrl || 'https://www.universityofcalifornia.edu/sites/default/files/generic-drugs-istock.jpg'}
+          src={drug.photoUrl || drug.type === 'drug' ? 'https://www.universityofcalifornia.edu/sites/default/files/generic-drugs-istock.jpg': 'https://www.ugabox.com/images/medical/directory/laboratory-instruments/laboratory-instruments-Hospital-Medical-Equipment-Kampala-Uganda-Ugabox.jpg'}
           className="drug-image"
         />
         {drug.stock <= drug.minStockThreshold && (
