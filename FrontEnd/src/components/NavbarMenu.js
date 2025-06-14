@@ -4,7 +4,7 @@ import { Button, Dropdown, Nav, Toast } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import {logOut}  from "../actions/LoginAction"
+import { logOut } from "../actions/LoginAction"
 import {
   onPressDashbord,
   onPressDashbordChild,
@@ -43,7 +43,7 @@ class NavbarMenu extends React.Component {
 
   activeMenutabwhenNavigate(activeKey) {
     if (
-      activeKey === "/dashboard" 
+      activeKey === "/dashboard"
       // activeKey === "/demographic" ||
       // activeKey === "/ioT"
     ) {
@@ -69,26 +69,26 @@ class NavbarMenu extends React.Component {
       activeKey === "/filemedia"
     ) {
       //this.activeMenutabContainer("FileManagerContainer");
-    // } else if (
-    //   activeKey === "/blognewpost" ||
-    //   activeKey === "/bloglist" ||
-    //   activeKey === "/blogdetails"
-    // ) {
-    //   this.activeMenutabContainer("BlogContainer");
-    // } else if (
-    //   activeKey === "/uitypography" ||
-    //   activeKey === "/uitabs" ||
-    //   activeKey === "/uibuttons" ||
-    //   activeKey === "/bootstrapui" ||
-    //   activeKey === "/uiicons" ||
-    //   activeKey === "/uinotifications" ||
-    //   activeKey === "/uicolors" ||
-    //   activeKey === "/uilistgroup" ||
-    //   activeKey === "/uimediaobject" ||
-    //   activeKey === "/uimodal" ||
-    //   activeKey === "/uiprogressbar"
-    // ) {
-     // this.activeMenutabContainer("UIElementsContainer");
+      // } else if (
+      //   activeKey === "/blognewpost" ||
+      //   activeKey === "/bloglist" ||
+      //   activeKey === "/blogdetails"
+      // ) {
+      //   this.activeMenutabContainer("BlogContainer");
+      // } else if (
+      //   activeKey === "/uitypography" ||
+      //   activeKey === "/uitabs" ||
+      //   activeKey === "/uibuttons" ||
+      //   activeKey === "/bootstrapui" ||
+      //   activeKey === "/uiicons" ||
+      //   activeKey === "/uinotifications" ||
+      //   activeKey === "/uicolors" ||
+      //   activeKey === "/uilistgroup" ||
+      //   activeKey === "/uimediaobject" ||
+      //   activeKey === "/uimodal" ||
+      //   activeKey === "/uiprogressbar"
+      // ) {
+      // this.activeMenutabContainer("UIElementsContainer");
     } else if (
       activeKey === "/widgetsdata" ||
       // activeKey === "/widgetsweather" ||
@@ -113,10 +113,8 @@ class NavbarMenu extends React.Component {
       activeKey === "/projectslist" ||
       activeKey === "/maintanance" ||
       activeKey === "/testimonials" ||
-      {/*activeKey === "/faqs"*/}
-    ) 
-    
-    {
+      {/*activeKey === "/faqs"*/ }
+    ) {
       //this.activeMenutabContainer("PagesContainer");
     } else if (
       activeKey === "/departments" ||
@@ -127,15 +125,12 @@ class NavbarMenu extends React.Component {
       activeKey === "/ressourcehumain" ||
       activeKey === "/caissier" ||
       activeKey === "/infirmier"
-    ) 
-    {
+    ) {
       this.activeMenutabContainer("DepartmentContainer");
     } else if (
       activeKey === "/listeMedicament"
-      
-    )
-    
-    {
+
+    ) {
       //this.activeMenutabContainer("FormsContainer");
     } else if (activeKey === "/tablenormal") {
       //this.activeMenutabContainer("TablesContainer");
@@ -145,7 +140,7 @@ class NavbarMenu extends React.Component {
     //   this.activeMenutabContainer("MapsContainer");
     // }
   }
-  
+
 
   // componentWillReceiveProps(){
   //   this.setState({
@@ -218,6 +213,7 @@ class NavbarMenu extends React.Component {
             <div className="navbar-brand">
               <a href={wapp.DASHBOARD}>
                 <img
+                  style={{ width: "48px", paddingLeft: "4px" }}
                   src={
                     document.body.classList.contains("full-dark")
                       ? LogoWhite
@@ -259,7 +255,7 @@ class NavbarMenu extends React.Component {
                       <i className="icon-calendar"></i>
                     </Link>
                   </li>
-                  
+
                   {/* <li>
                     <a href="/appchat" className="icon-menu d-none d-sm-block">
                       <i className="icon-bubbles"></i>
@@ -430,7 +426,7 @@ class NavbarMenu extends React.Component {
                     </ul>
                   </li>
                   <li>
-                      <a href="/login"><i className="icon-login"></i></a>
+                    <a href="/login"><i className="icon-login"></i></a>
 
                   </li>
                 </ul>
@@ -540,7 +536,7 @@ class NavbarMenu extends React.Component {
                       <ul className="collapse">
                         <li
                           className={activeKey === "allDoctor" ? "active" : ""}
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/allDoctor">All Doctors</Link>
                         </li>
@@ -548,7 +544,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "addDoctor" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/addDoctor">Add a Doctor</Link>
                         </li>
@@ -558,7 +554,7 @@ class NavbarMenu extends React.Component {
                           <Link to="/doctorProfile">Doctor Profile</Link>
                         </li> */}
                         <li className={activeKey === "doctorSchedule" ? "active" : ""}
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/doctorSchedule">Doctor's planning</Link>
                         </li>
@@ -592,13 +588,13 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "appcalendar" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/appcalendar">Calender</Link>
                         </li>
                         <li
                           className={activeKey === "appcontact" ? "active" : ""}
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/appcontact">Contact Card</Link>
                         </li>
@@ -1049,7 +1045,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "departments" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/departments">All Departments</Link>
                         </li>
@@ -1057,7 +1053,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "secretaire" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/secretaire">Secretary</Link>
                         </li>
@@ -1065,7 +1061,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "medicine" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/medicine">Doctor</Link>
                         </li>
@@ -1073,7 +1069,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "plateautechnique" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/plateautechnique">Technical Department</Link>
                         </li>
@@ -1081,7 +1077,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "laboratin" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/laboratin">Laboratory</Link>
                         </li>
@@ -1089,7 +1085,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "ressourcehumain" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/ressourcehumain">Human Resources</Link>
                         </li>
@@ -1097,7 +1093,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "caissier" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/caissier">Tresurer</Link>
                         </li>
@@ -1105,13 +1101,13 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "infirmier" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/infirmier">Nurse</Link>
                         </li>
                       </ul>
                     </li>
-                    
+
                     <li id="PharmacyContainer" className="">
                       <a
                         href="/#!"
@@ -1126,7 +1122,7 @@ class NavbarMenu extends React.Component {
                       <ul className="collapse">
                         <li
                           className={activeKey === "listeMedicament" ? "active" : ""}
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/listeMedicament">List of Drugs</Link>
                         </li>
@@ -1148,7 +1144,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "comptabilite" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/comptabilite">Accountability as a whole</Link>
                         </li>
@@ -1156,7 +1152,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "cpharmacie" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/cpharmacie">Pharmacy</Link>
                         </li>
@@ -1164,7 +1160,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "cconsultation" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/cconsultation">Consultation</Link>
                         </li>
@@ -1172,7 +1168,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "cinvestissement" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/cinvestissement">Investment</Link>
                         </li>
@@ -1180,7 +1176,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "cdons" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/cdons">Donations</Link>
                         </li>
@@ -1188,7 +1184,7 @@ class NavbarMenu extends React.Component {
                           className={
                             activeKey === "bilanGlobal" ? "active" : ""
                           }
-                          onClick={() => {}}
+                          onClick={() => { }}
                         >
                           <Link to="/bilanGlobal">Global Balance Sheet</Link>
                         </li>
@@ -1247,7 +1243,7 @@ class NavbarMenu extends React.Component {
                       >
                         <i className="icon-map"></i> <span>Maps</span>
                       </a> */}
-                      {/* <ul className="collapse">
+                    {/* <ul className="collapse">
                         <li
                           className={
                             activeKey === "leafletmap" ||
@@ -1285,7 +1281,7 @@ class NavbarMenu extends React.Component {
                     />
                   </div>
                 </form> */}
-                {/* <ul className="right_chat list-unstyled">
+              {/* <ul className="right_chat list-unstyled">
                   <li className="online">
                     <a>
                       <div className="media">
@@ -1336,7 +1332,7 @@ class NavbarMenu extends React.Component {
                       </div>
                     </a>
                   </li> */}
-                  {/* <li className="online">
+              {/* <li className="online">
                     <a>
                       <div className="media">
                         <img className="media-object " src={Avatar3} alt="" />
@@ -1348,7 +1344,7 @@ class NavbarMenu extends React.Component {
                       </div>
                     </a>
                   </li> */}
-                {/* </ul> */}
+              {/* </ul> */}
               {/* </div> */}
               <div
                 className={
@@ -1409,7 +1405,7 @@ class NavbarMenu extends React.Component {
                     ></div>
                     <span>Purple</span>
                   </li> */}
-                  {/* <li
+                {/* <li
                     data-theme="cyan"
                     className={themeColor === "theme-cyan" ? "active" : ""}
                   >
@@ -1568,7 +1564,7 @@ class NavbarMenu extends React.Component {
                         e.preventDefault();
                       }}
                     >
-                     How to consult patients' list 
+                      How to consult patients' list
                     </a>
                   </li>
                   <li>

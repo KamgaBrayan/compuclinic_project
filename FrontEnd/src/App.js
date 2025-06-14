@@ -1,4 +1,5 @@
 import React from "react";
+import EditDrug from "./screens/Pharmacy/EditDrug";
 import { connect } from "react-redux";
 import { Route, Switch, withRouter } from "react-router-dom";
 import Login from "./screens/Login";
@@ -65,7 +66,7 @@ import listeMedicament from "./screens/Pharmacy/ListeMedicament";
 import ajouterMedicament from "./screens/Pharmacy/AjouterMedicament";
 import PharmacyDashboard from "./screens/Pharmacy/PharmacyDashboard";
 import AddDrug from "./screens/Pharmacy/AddDrug";
-import ajouterPatient  from "./screens/Departments/ajouterPatient";
+import ajouterPatient from "./screens/Departments/ajouterPatient";
 import PatientProfile from "./screens/Patients/PatientProfile";
 import ConsultationContent from "./screens/Doctors/ConsultationContent";
 // import consultation from "./screens/comptabilite/Consultation";
@@ -90,169 +91,175 @@ class App extends React.Component {
     return (
       <div id="wrapper">
         {activeKey1 === "" ||
-        activeKey1 === "/" ||
-        activeKey1 === "login" ||
-        activeKey1 === "registration" ||
-        activeKey1 === "lockscreen" ||
-        activeKey1 === "forgotpassword" ||
-        activeKey1 === "page404" ||
-        activeKey1 === "page403" ||
-        activeKey1 === "page500" ||
-        activeKey1 === "page503" ||
-        activeKey1 === "maintanance" ? (
-            <Switch>
-              {/* <Route exact path={`${process.env.PUBLIC_URL}`} component={Login} /> */}
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/`}
-                component={Login}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/login`}
-                component={Login}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/logout`}
-                component={()=>{
-                  window.localStorage.removeItem('_compuclinicTokent')
-                  window.location.assign('/')
-                }}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/forgotpassword`}
-                component={forgotpassword}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/page404`}
-                component={page404}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/page403`}
-                component={page403}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/page500`}
-                component={page500}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/page503`}
-                component={page503}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/registration`}
-                component={registration}
-              />
-              <Route exact path={`registration`} component={registration} />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/lockscreen`}
-                component={lockscreen}
-              />
-              <Route
-                exact
-                path={`${process.env.PUBLIC_URL}/maintanance`}
-                component={maintanance}
-              />
-            </Switch>
+          activeKey1 === "/" ||
+          activeKey1 === "login" ||
+          activeKey1 === "registration" ||
+          activeKey1 === "lockscreen" ||
+          activeKey1 === "forgotpassword" ||
+          activeKey1 === "page404" ||
+          activeKey1 === "page403" ||
+          activeKey1 === "page500" ||
+          activeKey1 === "page503" ||
+          activeKey1 === "maintanance" ? (
+          <Switch>
+            {/* <Route exact path={`${process.env.PUBLIC_URL}`} component={Login} /> */}
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/`}
+              component={Login}
+            />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/login`}
+              component={Login}
+            />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/logout`}
+              component={() => {
+                window.localStorage.removeItem('_compuclinicTokent')
+                window.location.assign('/')
+              }}
+            />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/forgotpassword`}
+              component={forgotpassword}
+            />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/page404`}
+              component={page404}
+            />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/page403`}
+              component={page403}
+            />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/page500`}
+              component={page500}
+            />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/page503`}
+              component={page503}
+            />
+
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/registration`}
+              component={registration}
+            />
+            <Route exact path={`registration`} component={registration} />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/lockscreen`}
+              component={lockscreen}
+            />
+            <Route
+              exact
+              path={`${process.env.PUBLIC_URL}/maintanance`}
+              component={maintanance}
+            />
+          </Switch>
         ) : (
           <>
-              <NavbarMenu history={this.props.history} activeKey={activeKey1} />
-              <div id="main-content">
-                <Switch>
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/dashboard`}
-                    component={dashboard}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/demographic`}
-                    component={demographic}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/ioT`}
-                    component={ioT}
-                  />
-                   <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/allDoctor`}
-                    component={allDoctor}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/addDoctor`}
-                    component={addDoctor}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/pharmacy`}
-                    component={PharmacyDashboard}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/pharmacy/add`}
-                    component={AddDrug}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/addDrug`}
-                    component={AddDrug}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/bilanGlobal`}
-                    component={bilanGlobal}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/comptabilite`}
-                    component={comptabilite}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/cpharmacie`}
-                    component={pharmacie}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/cdons`}
-                    component={dons}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/cinvestissement`}
-                    component={investissement}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/doctor/:doc_id`}
-                    component={doctorProfile}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/doctorProfile`}
-                    component={doctorProfile}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/doctorSchedule`}
-                    component={doctorSchedule}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/patient/:patient_id`}
-                    component={PatientProfile}
-                  />
-                  {/* <Route
+            <NavbarMenu history={this.props.history} activeKey={activeKey1} />
+            <div id="main-content">
+              <Switch>
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/dashboard`}
+                  component={dashboard}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/demographic`}
+                  component={demographic}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/ioT`}
+                  component={ioT}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/allDoctor`}
+                  component={allDoctor}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/addDoctor`}
+                  component={addDoctor}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/pharmacy`}
+                  component={PharmacyDashboard}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/pharmacy/add`}
+                  component={AddDrug}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/addDrug`}
+                  component={AddDrug}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/editDrug/:drugId`}
+                  component={EditDrug}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/bilanGlobal`}
+                  component={bilanGlobal}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/comptabilite`}
+                  component={comptabilite}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/cpharmacie`}
+                  component={pharmacie}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/cdons`}
+                  component={dons}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/cinvestissement`}
+                  component={investissement}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/doctor/:doc_id`}
+                  component={doctorProfile}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/doctorProfile`}
+                  component={doctorProfile}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/doctorSchedule`}
+                  component={doctorSchedule}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/patient/:patient_id`}
+                  component={PatientProfile}
+                />
+                {/* <Route
                     exact
                     path={`${process.env.PUBLIC_URL}/appinbox`}
                     component={appInbox}
@@ -262,209 +269,209 @@ class App extends React.Component {
                     path={`${process.env.PUBLIC_URL}/appchat`}
                     component={appChat}
                   /> */}
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/appcalendar`}
-                    component={appCalendar}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/appcontact`}
-                    component={appContact}
-                  />
-                  {/* <Route
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/appcalendar`}
+                  component={appCalendar}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/appcontact`}
+                  component={appContact}
+                />
+                {/* <Route
                     exact
                     path={`${process.env.PUBLIC_URL}/apptaskbar`}
                     component={appTaskbar}
                   /> */}
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/filemanagerdashboard`}
-                    component={filemanagerdashboard}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/filedocuments`}
-                    component={filedocuments}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/filemedia`}
-                    component={filemedia}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/fileimages`}
-                    component={fileimages}
-                  />
-                  
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/widgetsdata`}
-                    component={widgetsdata}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/widgetsweather`}
-                    component={widgetsweather}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/widgetsblog`}
-                    component={widgetsblog}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/widgetsecommers`}
-                    component={widgetsecommers}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/blankpage`}
-                    component={blankpage}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/profilev1page`}
-                    component={profilev1page}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/profilev2page`}
-                    component={profilev2page}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/imagegalleryprofile`}
-                    component={imagegalleryprofile}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/timeline`}
-                    component={timeline}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/pricing`}
-                    component={pricing}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/invoices`}
-                    component={invoices}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/invoicesv2`}
-                    component={invoicesv2}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/searchresult`}
-                    component={searchresult}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/helperclass`}
-                    component={helperclass}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/teamsboard`}
-                    component={teamsboard}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/projectslist`}
-                    component={projectslist}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/testimonials`}
-                    component={testimonials}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/faqs`}
-                    component={faqs}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/departments`}
-                    component={departments}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/secretaire`}
-                    component={secretaire}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/medicine`}
-                    component={medicine}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/medicine/:consultation_id`}
-                    component={ConsultationContent}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/laboratin`}
-                    component={laboratin}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/plateautechnique`}
-                    component={plateautechnique}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/ressourcehumain`}
-                    component={resourcehumain}
-                  />
-                  <Route
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/filemanagerdashboard`}
+                  component={filemanagerdashboard}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/filedocuments`}
+                  component={filedocuments}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/filemedia`}
+                  component={filemedia}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/fileimages`}
+                  component={fileimages}
+                />
+
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/widgetsdata`}
+                  component={widgetsdata}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/widgetsweather`}
+                  component={widgetsweather}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/widgetsblog`}
+                  component={widgetsblog}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/widgetsecommers`}
+                  component={widgetsecommers}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/blankpage`}
+                  component={blankpage}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/profilev1page`}
+                  component={profilev1page}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/profilev2page`}
+                  component={profilev2page}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/imagegalleryprofile`}
+                  component={imagegalleryprofile}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/timeline`}
+                  component={timeline}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/pricing`}
+                  component={pricing}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/invoices`}
+                  component={invoices}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/invoicesv2`}
+                  component={invoicesv2}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/searchresult`}
+                  component={searchresult}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/helperclass`}
+                  component={helperclass}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/teamsboard`}
+                  component={teamsboard}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/projectslist`}
+                  component={projectslist}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/testimonials`}
+                  component={testimonials}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/faqs`}
+                  component={faqs}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/departments`}
+                  component={departments}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/secretaire`}
+                  component={secretaire}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/medicine`}
+                  component={medicine}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/medicine/:consultation_id`}
+                  component={ConsultationContent}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/laboratin`}
+                  component={laboratin}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/plateautechnique`}
+                  component={plateautechnique}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/ressourcehumain`}
+                  component={resourcehumain}
+                />
+                <Route
                   exact
                   path={`${process.env.PUBLIC_URL}/caissier`}
                   component={caissier}
-                  />
-                  <Route
+                />
+                <Route
                   exact
                   path={`${process.env.PUBLIC_URL}/infirmier`}
                   component={infirmier}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/tablenormal`}
-                    component={tablenormal}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/listeMedicament`}
-                    component={listeMedicament}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/ajouterMedicament`}
-                    component={ajouterMedicament}
-                  />
-                  <Route
-                    exact
-                    path={`${process.env.PUBLIC_URL}/ajouterPatient`}
-                    component={ajouterPatient}
-                  />
-                  {/* <Route
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/tablenormal`}
+                  component={tablenormal}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/listeMedicament`}
+                  component={listeMedicament}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/ajouterMedicament`}
+                  component={ajouterMedicament}
+                />
+                <Route
+                  exact
+                  path={`${process.env.PUBLIC_URL}/ajouterPatient`}
+                  component={ajouterPatient}
+                />
+                {/* <Route
                     exact
                     path={`${process.env.PUBLIC_URL}/echart`}
                     component={echart}
                   /> */}
-                  {/* <Route
+                {/* <Route
                     exact
                     path={`${process.env.PUBLIC_URL}/leafletmap`}
                     component={leafletmap}
                   /> */}
-                </Switch>
-              </div>
+              </Switch>
+            </div>
           </>
         )}
       </div>
